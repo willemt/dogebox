@@ -1,0 +1,12 @@
+
+onefolder - synchronise your folders
+
+Usage:
+  onefolder --help
+  yabtorrent --connect <ip>
+  yabtorrent <folder>
+
+Options:
+  -h --help  Prints a short usage summary.
+  -c --connect  Connect to the peer and start sharing.
+

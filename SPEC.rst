@@ -1,0 +1,329 @@
+OneFolder Specification v0.1
+============================
+
+OneFolder has six key problems:
+1) Monitoring filesystem events
+2) Mapping files to Bittorrent pieces
+3) Maintaining file and piece event logs
+4) Maintaining log concensus between nodes
+5) Transmitting Bittorrent pieces
+6) Peer discovery
+
+1. Monitoring filesystem events
+===============================
+
+Clients need to monitor the following filesystem events:
+
+Creation
+~~~~~~~~
+
++----------------+----------------------------------------------+
+| Parameter name | Comments                                     |
++----------------+----------------------------------------------+
+| path           | The path name of the file                    |
++----------------+----------------------------------------------+
+| is_dir         | Whether or not the file is a                 |
+|                | directory                                    |
++----------------+----------------------------------------------+
+| size           | Size of the file in bytes                    |
++----------------+----------------------------------------------+
+| mtime          | When the file was last modified              |
++----------------+----------------------------------------------+
+
+Removal
+~~~~~~~
+
++----------------+----------------------------------+
+| Parameter name | Comments                         |
++----------------+----------------------------------+
+| filename       |                                  |
++----------------+----------------------------------+
+
+Removal
+~~~~~~~
+
++----------------+----------------------------------+
+| Parameter name | Comments                         |
++----------------+----------------------------------+
+| filename       |                                  |
++----------------+----------------------------------+
+| new filename   |                                  |
++----------------+----------------------------------+
+| mtime          |                                  |
++----------------+----------------------------------+
+
+Write
+~~~~~~~
+
++----------------+----------------------------------+
+| Parameter name | Comments                         |
++----------------+----------------------------------+
+| filename       |                                  |
++----------------+----------------------------------+
+| new size       |                                  |
++----------------+----------------------------------+
+| mtime          |                                  |
++----------------+----------------------------------+
+
+2. Mapping files to Bittorrent pieces 
+=====================================
+Files have a one-to-many relationship with pieces.
+
+3. Maintaining file and piece event logs
+========================================
+
+Three logs are recorded by OneFolder:
+- File log, a listing of file metadata
+- Piece log, a listing of piece metadata 
+- Action log, a listing of actions that have been actioned on the File and Piece logs
+
+File Log
+--------
+The file log is a bencoded list of dictionaries with the following key/values:
+
++-----------------+-----------+---------------------------------------+
+| Filed name      | Data type | Comments                              |
++-----------------+-----------+---------------------------------------+
+| path            | string    | Path of file                          |
++-----------------+-----------+---------------------------------------+
+| size            | uint32    | Size if bytes of file                 |
++-----------------+-----------+---------------------------------------+
+| is_deleted      | string    | "y" when piece has been removed       |
++-----------------+-----------+---------------------------------------+
+| piece_idx_start | uint32    | The starting piece index of the file  |
++-----------------+-----------+---------------------------------------+
+| piece_idx_end   | uint32    | The ending piece index of the file    |
++-----------------+-----------+---------------------------------------+
+| mtime           | uint32    | Last modified time of file meta data  |
++-----------------+-----------+---------------------------------------+
+
+Piece Log
+----------
+The piece log is a bencoded list of dictionaries with the following key/values:
+
++----------------+-----------+---------------------------------------+
+| Field name     | Data type | Comments                              |
++----------------+-----------+---------------------------------------+
+| piece_idx      | uint32    | Index of piece                        |
++----------------+-----------+---------------------------------------+
+| size           | uint32    | Size of piece in bytes                |
++----------------+-----------+---------------------------------------+
+| hash           | string    | SHA1 hashsum of piece contents        |
++----------------+-----------+---------------------------------------+
+| mtime          | uint32    | Last modified time of piece meta data |
++----------------+-----------+---------------------------------------+
+
+Action log
+----------
+The action log is a bencoded list of dictionaries. The number of dictionary key/values depends on the "action_type" field. See structure below:
+
++----------------+-----------+---------------------------------------+
+| Field name     | Data type | Comments                              |
++----------------+-----------+---------------------------------------+
+| log_id         | uint32    | Unique ID of action                   |
+|                |           |                                       |
++----------------+-----------+---------------------------------------+
+| action_type    | string    | The type of action                    |
++----------------+-----------+---------------------------------------+
+| The fields specific to the action are determined by the value of   |
+| the "action_type" field. The action fields are below.              |
++--------------------------------------------------------------------+
+
+map_piece
+~~~~~~~~~
+A piece is mapped to a file.
+
++----------------+-----------+---------------------------------------+
+| Field name     | Data type | Comments                              |
++----------------+-----------+---------------------------------------+
+| file_name      | string    | Path of file                          |
+|                |           |                                       |
++----------------+-----------+---------------------------------------+
+| offset         | uint32    | Byte offset within file               |
++----------------+-----------+---------------------------------------+
+| piece_idx      | uint32    | Piece index                           |
++----------------+-----------+---------------------------------------+
+
+The receiver:
+- Updates the "piece_id_start" and/or "piece_id_end" field of the corresponding entry within the File Log.
+- Fail if pieces are not contiguous
+
+unmap_piece
+~~~~~~~~~~~
+A piece is unmapped. This is done when a file removed, and a piece has a reference count of 0.
+
++----------------+-----------+---------------------------------------+
+| Field name     | Data type | Comments                              |
++----------------+-----------+---------------------------------------+
+| file_name      | string    | Path of file                          |
++----------------+-----------+---------------------------------------+
+| piece_idx      | uint32    | Piece index                           |
++----------------+-----------+---------------------------------------+
+
+The receiver:
+- Updates the "piece_id_start" and/or "piece_id_end" field of the corresponding entry within the File Log.
+
+change_piece
+~~~~~~~~~~~~
+This occurs when file contents change.
+
++----------------+-----------+---------------------------------------+
+| Field name     | Data type | Comments                              |
++----------------+-----------+---------------------------------------+
+| piece_idx      | uint32    | Piece index                           |
++----------------+-----------+---------------------------------------+
+| new_hash       | string    | New SHA1 hash of piece                |
++----------------+-----------+---------------------------------------+
+| new_size       | uint32    | New size of piece                     |
++----------------+-----------+---------------------------------------+
+
+The receiver:
+- Updates the "hash" field of the corresponding entry within the Piece Log with "new_hash".
+- Updates the "size" field of the entry from the File Log that points to this piece has its "size" 
+- If "new_hash" is different from "hash" mark piece as "don't have" and send a PWP_DONTHAVE message to OneFolder peers
+
+For pieces that haven't changed size the "new_size" value remains the same.
+
+remove_file
+~~~~~~~~~~~
+This occurs when files are removed.
+
++----------------+-----------+---------------------------------------+
+| Field name     | Data type | Comments                              |
++----------------+-----------+---------------------------------------+
+| file_name      | string    | Path of file                          |
++----------------+-----------+---------------------------------------+
+
+The receiver:
+- Updates the corresponding File Log entry's "is_deleted" field to "y".
+
+Deleted files persist indefinitely in the database. This is done to ensure that "ghost" copies of deleted files don't reappear unexpectedly.
+
+move_file
+~~~~~~~~~
+This occurs when files are removed.
+
++----------------+-----------+---------------------------------------+
+| Field name     | Data type | Comments                              |
++----------------+-----------+---------------------------------------+
+| path           | string    | Path of file                          |
++----------------+-----------+---------------------------------------+
+| new_path       | string    | New path of file                      |
++----------------+-----------+---------------------------------------+
+
+The receiver:
+- Updates the corresponding File Log entry's "is_deleted" field to "y".
+
+Deleted files persist indefinitely in the database. This is done to ensure that "ghost" copies of deleted files don't reappear unexpectedly.
+
+new_file
+~~~~~~~~
+This occurs when files are created. 
+
++-----------------+-----------+---------------------------------------+
+| Field name      | Data type | Comments                              |
++-----------------+-----------+---------------------------------------+
+| path            | string    | Path of file                          |
++-----------------+-----------+---------------------------------------+
+| size            | uint32    | Size (in bytes) of file               |
++-----------------+-----------+---------------------------------------+
+| piece idx_start | uint32    | The starting piece index of the file  |
++-----------------+-----------+---------------------------------------+
+| piece idx_end   | uint32    | The ending piece index of the file    |
++-----------------+-----------+---------------------------------------+
+| mtime           | uint32    | Last modified time of file meta data  |
++-----------------+-----------+---------------------------------------+
+
+The receiver:
+- Inserts a new entry into the File Log using the provided values.
+
+4. Maintaining log concensus (WIP)
+==================================
+File and Piece logs are shared using one of the following methods:
+
+1. Action log messages
+~~~~~~~~~~~~~~~~~~~~~~
+If a file event occurs and a peer is connected with non-empty File and Piece logs, an Action log message is sent to the peer.
+
+2. IBLT (Inverse Bloom Lookup Table)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+When a peer first connects and with non-empty File and Piece logs:
+1) Hash files
+2) Populate IBLT with hashes. Avoid collisions
+3) Send IBLT
+4) Figure out set difference
+5) One MSG:
+ - Request IDs for hashes of difference
+ - Send IDs that are different
+6) Merge received different items 
+7) Update merkle tree
+
+3. Merkle tree
+~~~~~~~~~~~~~~
+When a peer first connects and with non-empty File and Piece logs:
+1) Send root node
+2) Compare to own tree
+3) Request sub trees left breadth first (merkle tree is ordered by file's name)
+4) Recompute merkle tree as it is updated
+
+4. Full log
+~~~~~~~~~~~
+Send the full File and Piece logs to the peer.
+This is only used when the peer is new to the Shared Folder.
+
+5. Transmitting Bittorrent pieces
+=================================
+The bittorrent protocol 
+
+6. Peer discovery
+=================
+TODO
+
+Folder configurations 
+=====================
+Shared folders are configured with the following options:
+
++----------------+----------------------------------------------+---------+
+| Parameter name | Comments                                     | Default |
++----------------+----------------------------------------------+---------+
+| piece_size     | This is the default size of pieces. If a     | 2mb     |
+|                | If a file can be contained within a single   |         |
+|                | piece that piece size will be used.          |         |
++----------------+----------------------------------------------+---------+
+
+OneFolder Peer Wire Protocol extensions
+========================================
+If a peer also uses OneFolder, the OneFolder Peer Wire Protocol extensions are used.
+
+PWP_DONTHAVE Message
+--------------------
+As time goes on, an Action Log entry message might result in a piece not being available on the node anymore. A PWP_DONTHAVE message is sent when the OneFolder client understands that it doesn't have that piece anymore.
+
++----------------+-----------+----------------------------------------------+
+| Field name     | Data type | Bits | Comments                              |
++----------------+-----------+----------------------------------------------+
+| len            | uint32    |    4 | Size of payload                       |
++----------------+-----------+----------------------------------------------+
+| id             | uint32    |    4 | PWP message type, always equals 9     |
++----------------+-----------+----------------------------------------------+
+| piece id       | uint32    |    4 | The piece index                       |
++----------------+-----------+----------------------------------------------+
+
+TODO
+====
+- Undo log
+- Shared secrets
+- DHT peer discovery
+- LAN broadcast peer discovery
+- Encrypted piece transmission
+
+Current implementation
+======================
+The following functions are enough for the filesystem module to provide the necessary functionality:
+.. code:: python
+    def new_file(file, size hint)
+    def enlarge_file(file, new_size)
+    def reduce_size(file, new_size)
+    def delete_file(file)
+    def filepos_getpiece(file, pos)
+
