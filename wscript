@@ -15,6 +15,7 @@ contribs = [
 ('CBipBuffer', 'http://github.com/willemt/CBipBuffer'),
 ('CConfig-re', 'http://github.com/willemt/CConfig-re'),
 ('CEventTimer', 'http://github.com/willemt/CEventTimer'),
+('CFileWatcher', 'http://github.com/willemt/CFileWatcher'),
 ('CTrackerClient', 'http://github.com/willemt/CTrackerClient'),
 ('CSparseCounter', 'http://github.com/willemt/CSparseCounter'),
 ('CLinkedListQueue', 'http://github.com/willemt/CLinkedListQueue'),
@@ -257,7 +258,7 @@ def build(bld):
     bld.program(
         source=[
             "onefolder.c",
-            "filewatcher.c",
+            cp+"CFileWatcher/filewatcher.c",
             cp+"CBipBuffer/bipbuffer.c",
             cp+"YABTorrent/mt19937ar.c",
             cp+"YABTorrent/networkfuncs_libuv.c",
@@ -274,9 +275,10 @@ def build(bld):
         lib = libs,
         includes=[
             './libuv/include',
-            cp+"CBipBuffer",
             cp+"CConfig-re",
+            cp+"CBipBuffer",
             cp+"YABTorrent",
+            cp+"CFileWatcher",
             cp+"CLinkedListQueue",
             cp+"CTorrentFileReader",
             cp+"CHashMapViaLinkedList",
