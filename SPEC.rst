@@ -1,7 +1,9 @@
-OneFolder Specification v0.1
+one-folder Specification v0.1
 ============================
 
-OneFolder has six key problems:
+one-folder (OF) makes use of a binary protocol for all synchronisation traffic. A modified version of the Bittorrent protocol is encapsulated within one-folder binary protocol messages.
+
+one-folder has six key problems, which are elaborated on in the below sections.
 1) Monitoring filesystem events
 2) Mapping files to Bittorrent pieces
 3) Maintaining file and piece event logs
@@ -39,8 +41,8 @@ Removal
 | filename       |                                  |
 +----------------+----------------------------------+
 
-Removal
-~~~~~~~
+Movement
+~~~~~~~~
 
 +----------------+----------------------------------+
 | Parameter name | Comments                         |
@@ -68,13 +70,14 @@ Write
 2. Mapping files to Bittorrent pieces 
 =====================================
 Files have a one-to-many relationship with pieces.
+Files must be mapped to a contiguous range of pieces based off the ordering of the piece index.
 
 3. Maintaining file and piece event logs
 ========================================
 
-Three logs are recorded by OneFolder:
-- File log, a listing of file metadata
-- Piece log, a listing of piece metadata 
+Three logs are recorded by one-folder:
+- File log, a listing of file metadata (eg. mapping between files and pieces)
+- Piece log, a listing of piece metadata (eg. piece content hashes)  
 - Action log, a listing of actions that have been actioned on the File and Piece logs
 
 File Log
@@ -180,7 +183,7 @@ This occurs when file contents change.
 The receiver:
 - Updates the "hash" field of the corresponding entry within the Piece Log with "new_hash".
 - Updates the "size" field of the entry from the File Log that points to this piece has its "size" 
-- If "new_hash" is different from "hash" mark piece as "don't have" and send a PWP_DONTHAVE message to OneFolder peers
+- If "new_hash" is different from "hash" mark piece as "don't have" and send a PWP_DONTHAVE message to one-folder peers
 
 For pieces that haven't changed size the "new_size" value remains the same.
 
@@ -239,6 +242,8 @@ The receiver:
 
 4. Maintaining log concensus (WIP)
 ==================================
+It is compulsory that Action logs be synchronised between nodes from the point that the node.
+
 File and Piece logs are shared using one of the following methods:
 
 1. Action log messages
@@ -271,9 +276,35 @@ When a peer first connects and with non-empty File and Piece logs:
 Send the full File and Piece logs to the peer.
 This is only used when the peer is new to the Shared Folder.
 
+Full log messages have the following message format:
+
++----------------+-----------+----------------------------------------------+
+| Field name     | Data type | Bits | Comments                              |
++----------------+-----------+----------------------------------------------+
+| of_id          | uint32    |    4 | OF message type, always equals 1      |
++----------------+-----------+----------------------------------------------+
+| filelog_len    | uint32    |    4 | Length of file log string             |
++----------------+-----------+----------------------------------------------+
+| piecelog_len   | uint32    |    4 | Length of piece log string            |
++----------------+-----------+----------------------------------------------+
+| filelog        | string    |  N/A |                                       |
++----------------+-----------+----------------------------------------------+
+| piecelog       | string    |  N/A |                                       |
++----------------+-----------+----------------------------------------------+
+
 5. Transmitting Bittorrent pieces
 =================================
-The bittorrent protocol 
+The bittorrent protocol is encapsulated within one-folder messages.
+
+one-folder piece messages have the following message format:
+
++----------------+-----------+----------------------------------------------+
+| Field name     | Data type | Bits | Comments                              |
++----------------+-----------+----------------------------------------------+
+| of_id          | uint32    |    4 | OF message type, always equals 2      |
++----------------+-----------+----------------------------------------------+
+| payload        | Bittorrent PWP message data                              |
++----------------+----------------------------------------------------------+
 
 6. Peer discovery
 =================
@@ -291,13 +322,13 @@ Shared folders are configured with the following options:
 |                | piece that piece size will be used.          |         |
 +----------------+----------------------------------------------+---------+
 
-OneFolder Peer Wire Protocol extensions
+one-folder Peer Wire Protocol extensions
 ========================================
-If a peer also uses OneFolder, the OneFolder Peer Wire Protocol extensions are used.
+If a peer also uses one-folder, the one-folder Peer Wire Protocol extensions are used.
 
 PWP_DONTHAVE Message
 --------------------
-As time goes on, an Action Log entry message might result in a piece not being available on the node anymore. A PWP_DONTHAVE message is sent when the OneFolder client understands that it doesn't have that piece anymore.
+As time goes on, an Action Log entry message might result in a piece not being available on the node anymore. A PWP_DONTHAVE message is sent when the one-folder client understands that it doesn't have that piece anymore.
 
 +----------------+-----------+----------------------------------------------+
 | Field name     | Data type | Bits | Comments                              |
