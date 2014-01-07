@@ -160,6 +160,7 @@ static void __periodic(uv_timer_t* handle, int status)
 }
 
 int file_added(
+    void* udata,
     char* name,
     int is_dir,
     unsigned int size,
@@ -169,19 +170,19 @@ int file_added(
     return 0;
 }
 
-int file_removed(char* name)
+int file_removed(void* udata, char* name)
 {
     printf("removed: %s\n", name);
     return 0;
 }
 
-int file_changed(char* name, int new_size, unsigned long mtime)
+int file_changed(void* udata, char* name, int new_size, unsigned long mtime)
 {
     printf("changed: %s %d\n", name, new_size);
     return 0;
 }
 
-int file_moved(char* name, char* new_name, unsigned long mtime)
+int file_moved(void* udata, char* name, char* new_name, unsigned long mtime)
 {
     printf("moved: %s %s\n", name, new_name);
     return 0;
@@ -237,7 +238,6 @@ int main(int argc, char **argv)
                 .get_npieces = bt_random_selector_get_npieces,
                 .poll_piece = bt_random_selector_poll_best_piece }), NULL);
     bt_dm_check_pieces(me.bc);
-    bt_piecedb_print_pieces_downloaded(me.db);
 
     /* set network functions */
     bt_dm_set_cbs(me.bc, &((bt_dm_cbs_t) {
@@ -266,7 +266,7 @@ int main(int argc, char **argv)
                 .file_removed = file_removed, 
                 .file_changed = file_changed, 
                 .file_moved = file_moved
-                }), NULL);
+                }), &me);
 
     }
 

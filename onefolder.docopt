@@ -1,12 +1,12 @@
 
-onefolder - synchronise your folders
+one-folder - synchronise your folders
 
 Usage:
   onefolder --help
-  yabtorrent --connect <ip>
-  yabtorrent <folder>
+  onefolder --connect=<ip> --folder=<sync_folder>
 
 Options:
   -h --help  Prints a short usage summary.
-  -c --connect  Connect to the peer and start sharing.
+  -c --connect=<ip>  Connect to the peer and start sharing.
+  -f --folder=<sync_folder>  Perform the synchronisation on this folder
 
