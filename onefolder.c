@@ -80,7 +80,7 @@ static void __log(void *udata, void *src, const char *buf, ...)
 //    int fd = (unsigned long) udata;
     struct timeval tv;
 
-    //printf("%s\n", buf);
+    printf("%s\n", buf);
     gettimeofday(&tv, NULL);
     sprintf(stamp, "%d,%0.2f,", (int) tv.tv_sec, (float) tv.tv_usec / 100000);
 //    write(fd, stamp, strlen(stamp));
@@ -188,6 +188,38 @@ int file_moved(void* udata, char* name, char* new_name, unsigned long mtime)
     return 0;
 }
 
+static void __on_tc_add_peer(void* callee,
+        char* peer_id,
+        unsigned int peer_id_len,
+        char* ip,
+        unsigned int ip_len,
+        unsigned int port)
+{
+    sys_t* me = callee;
+    void* peer;
+    void* netdata;
+    void* peer_nethandle;
+    char ip_string[32];
+
+    peer_nethandle = NULL;
+    sprintf(ip_string,"%.*s", ip_len, ip);
+
+#if 0 /* debug */
+    printf("adding peer: %s %d\n", ip_string, port);
+#endif
+
+    uv_mutex_lock(&me->mutex);
+    if (0 == peer_connect(me, &netdata, &peer_nethandle, ip_string, port,
+                __dispatch_from_buffer,
+                __on_peer_connect,
+                __on_peer_connect_fail))
+    {
+
+    }
+    peer = bt_dm_add_peer(me->bc, peer_id, peer_id_len, ip, ip_len, port, peer_nethandle);
+    uv_mutex_unlock(&me->mutex);
+}
+
 int main(int argc, char **argv)
 {
     DocoptArgs args = docopt(argc, argv, 1, "0.1");
@@ -269,6 +301,35 @@ int main(int argc, char **argv)
                 }), &me);
 
     }
+
+    /* open listening port */
+    void* netdata;
+    int listen_port = args.port ? atoi(args.port) : 0;
+    if (0 == (listen_port = peer_listen(&me, &netdata, listen_port,
+                __dispatch_from_buffer,
+                __on_peer_connect,
+                __on_peer_connect_fail)))
+    {
+        printf("ERROR: can't create listening socket");
+        exit(0);
+    }
+
+    if (args.connect)
+    {
+        printf("connecting to: %s\n", args.connect);
+
+        char* end = strstr(args.connect, ":");
+
+        if (end)
+        {
+            printf("connecting to: %s\n", args.connect);
+            __on_tc_add_peer(&me, "", 0,
+                    args.connect, end - args.connect, atoi(end));
+        }
+    }
+
+    config_set_va(me.cfg, "pwp_listen_port", "%d", listen_port);
+    printf("Listening on port: %d\n", listen_port);
 
     /* create periodic timer */
     uv_timer_t *periodic_req;

@@ -261,7 +261,7 @@ def build(bld):
             cp+"CFileWatcher/filewatcher.c",
             cp+"CBipBuffer/bipbuffer.c",
             cp+"YABTorrent/mt19937ar.c",
-            "networkfuncs_libuv.c",
+            cp+"YABTorrent/networkfuncs_libuv.c",
             ],
         target='onefolder',
         cflags=[

@@ -4,9 +4,11 @@ one-folder - synchronise your folders
 Usage:
   onefolder --help
   onefolder --connect=<ip> --folder=<sync_folder>
+      [--port=<listen-port>]
 
 Options:
   -h --help  Prints a short usage summary.
   -c --connect=<ip>  Connect to the peer and start sharing.
   -f --folder=<sync_folder>  Perform the synchronisation on this folder
+  -p --port=<listen_port>  Port used for listening for incoming connections
 
