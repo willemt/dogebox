@@ -276,32 +276,57 @@ When a peer first connects and with non-empty File and Piece logs:
 Send the full File and Piece logs to the peer.
 This is only used when the peer is new to the Shared Folder.
 
+See section 5 for message format.
+
+5. Transmitting Bittorrent pieces
+=================================
+The bittorrent protocol is encapsulated within one-folder messages.
+
+Handshake message
+~~~~~~~~~~~~~~~~~
+Handshake messages are sent at the beginning of the connection.
+Handshake messages have the following message format:
+
++----------------+-----------+----------------------------------------------+
+| Field name     | Data type | Bits | Comments                              |
++----------------+-----------+----------------------------------------------+
+| protname_len   | byte      |    8 | Length of protocol name               |
++----------------+-----------+----------------------------------------------+
+| protname       | string    |  N/A | Name of protocol                      |
++----------------+-----------+----------------------------------------------+
+
+The receiver:
+- If handshake is valid, reply with handshake
+
+Full log message
+~~~~~~~~~~~~~~~~
 Full log messages have the following message format:
 
 +----------------+-----------+----------------------------------------------+
 | Field name     | Data type | Bits | Comments                              |
 +----------------+-----------+----------------------------------------------+
-| of_id          | uint32    |    4 | OF message type, always equals 1      |
+| of_id          | byte      |    8 | message type, always equals 2         |
 +----------------+-----------+----------------------------------------------+
-| filelog_len    | uint32    |    4 | Length of file log string             |
+| filelog_len    | uint32    |   32 | Length of file log string             |
 +----------------+-----------+----------------------------------------------+
-| piecelog_len   | uint32    |    4 | Length of piece log string            |
+| piecelog_len   | uint32    |   32 | Length of piece log string            |
 +----------------+-----------+----------------------------------------------+
 | filelog        | string    |  N/A |                                       |
 +----------------+-----------+----------------------------------------------+
 | piecelog       | string    |  N/A |                                       |
 +----------------+-----------+----------------------------------------------+
 
-5. Transmitting Bittorrent pieces
-=================================
-The bittorrent protocol is encapsulated within one-folder messages.
+The receiver:
+- If handshake is valid, reply with handshake
 
+Piece message
+~~~~~~~~~~~~~
 one-folder piece messages have the following message format:
 
 +----------------+-----------+----------------------------------------------+
 | Field name     | Data type | Bits | Comments                              |
 +----------------+-----------+----------------------------------------------+
-| of_id          | uint32    |    4 | OF message type, always equals 2      |
+| of_id          | byte      |    4 | OF message type, always equals 3      |
 +----------------+-----------+----------------------------------------------+
 | payload        | Bittorrent PWP message data                              |
 +----------------+----------------------------------------------------------+
