@@ -258,6 +258,9 @@ def build(bld):
     bld.program(
         source=[
             "onefolder.c",
+            "onefolder_msghandler.c",
+            "onefolder_handshaker.c",
+            cp+"CBitfield/bitfield.c",
             cp+"CFileWatcher/filewatcher.c",
             cp+"CBipBuffer/bipbuffer.c",
             cp+"YABTorrent/mt19937ar.c",
@@ -275,6 +278,7 @@ def build(bld):
         lib = libs,
         includes=[
             './libuv/include',
+            cp+"CBitfield",
             cp+"CConfig-re",
             cp+"CBipBuffer",
             cp+"YABTorrent",

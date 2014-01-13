@@ -305,6 +305,8 @@ Full log messages have the following message format:
 +----------------+-----------+----------------------------------------------+
 | Field name     | Data type | Bits | Comments                              |
 +----------------+-----------+----------------------------------------------+
+#| len            | uint32    |   32 | Length of message payload             |
+#+----------------+-----------+----------------------------------------------+
 | of_id          | byte      |    8 | message type, always equals 2         |
 +----------------+-----------+----------------------------------------------+
 | filelog_len    | uint32    |   32 | Length of file log string             |
@@ -319,9 +321,9 @@ Full log messages have the following message format:
 The receiver:
 - If handshake is valid, reply with handshake
 
-Piece message
-~~~~~~~~~~~~~
-one-folder piece messages have the following message format:
+Bittorrent message
+~~~~~~~~~~~~~~~~~~
+one-folder bittorrent messages have the following message format:
 
 +----------------+-----------+----------------------------------------------+
 | Field name     | Data type | Bits | Comments                              |
