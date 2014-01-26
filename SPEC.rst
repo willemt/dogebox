@@ -41,8 +41,8 @@ Removal
 | filename       |                                  |
 +----------------+----------------------------------+
 
-Movement
-~~~~~~~~
+Rename
+~~~~~~
 
 +----------------+----------------------------------+
 | Parameter name | Comments                         |
@@ -55,7 +55,7 @@ Movement
 +----------------+----------------------------------+
 
 Write
-~~~~~~~
+~~~~~
 
 +----------------+----------------------------------+
 | Parameter name | Comments                         |
@@ -69,12 +69,14 @@ Write
 
 2. Mapping files to Bittorrent pieces 
 =====================================
-Files have a one-to-many relationship with pieces.
-Files must be mapped to a contiguous range of pieces based off the ordering of the piece index.
+There are 2^32 possible pieces within one-folder. Pieces represent data chunks of *up to* 2mb in size. onefolder uses a modified form of the Bittorrent Peer Wire Protocol to allow variable sized pieces.
+
+Files have a one-to-many relationship with pieces. This relationship is specified by a piece offset and piece range (eg. readme.txt has a piece start IDX of 2 with a piece range of 3, ie. readme.txt is made up of pieces 2, 3, 4, 5). This means that files must be mapped to a contiguous range of pieces (the ordering is based off the piece index).
+
+Files are assigned a piece mapping by choosing a random piece IDX of a piece that isn't yet mapped. The piece range is dependent on the size of the file.
 
 3. Maintaining file and piece event logs
 ========================================
-
 Three logs are recorded by one-folder:
 - File log, a listing of file metadata (eg. mapping between files and pieces)
 - Piece log, a listing of piece metadata (eg. piece content hashes)  
