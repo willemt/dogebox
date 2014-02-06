@@ -39,7 +39,7 @@ int of_handshaker_send_handshake(
         char* expected_ih,
         char* my_pi)
 {
-    char buf[1024], *protocol_name = PROTOCOL_NAME, *ptr;
+    char buf[1024], *prot_name = PROTOCOL_NAME, *ptr;
     int size, ii;
 
     assert(NULL != expected_ih);
@@ -48,12 +48,12 @@ int of_handshaker_send_handshake(
     ptr = buf;
 
     /* protocol name length */
-    bitstream_write_ubyte((unsigned char**)&ptr, strlen(protocol_name));
+    bitstream_write_ubyte((unsigned char**)&ptr, strlen(prot_name));
 
     /* protocol name */
-    bitstream_write_string((unsigned char**)&ptr, protocol_name, strlen(protocol_name));
+    bitstream_write_string((unsigned char**)&ptr, prot_name, strlen(prot_name));
 
-    size = 1 + strlen(protocol_name);// + 8 + 20 + 20;
+    size = 1 + strlen(prot_name);// + 8 + 20 + 20;
 
     if (0 == send(callee, udata, buf, size))
     {
@@ -123,7 +123,6 @@ int of_handshaker_dispatch_from_buffer(void* me_,
         {
             hs->pn_len = __readbyte(&me->bytes_read, buf, len);
 
-            /* invalid length */
             if (0 == hs->pn_len)
             {
                 printf("ERROR: invalid length\n");
@@ -156,6 +155,7 @@ int of_handshaker_dispatch_from_buffer(void* me_,
                 }
 
                 me->cur = me->curr_value = hs->reserved = malloc(8);
+                return 1;
             }
         }
         else

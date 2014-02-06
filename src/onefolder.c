@@ -73,22 +73,25 @@ typedef struct {
     uv_mutex_t mutex;
 
     /* filewatcher */
-    void* fw;
+    filewatcher_t* fw;
 } sys_t;
 
 uv_loop_t *loop;
 
 static void __log(void *udata, void *src, const char *buf, ...)
 {
+#if 0
     char stamp[32];
-//    int fd = (unsigned long) udata;
+    int fd = (unsigned long) udata;
     struct timeval tv;
 
-    printf("%s\n", buf);
     gettimeofday(&tv, NULL);
     sprintf(stamp, "%d,%0.2f,", (int) tv.tv_sec, (float) tv.tv_usec / 100000);
-//    write(fd, stamp, strlen(stamp));
-//    write(fd, buf, strlen(buf));
+    write(fd, stamp, strlen(stamp));
+    write(fd, buf, strlen(buf));
+#endif
+
+    printf("LOG: %s\n", buf);
 }
 
 static void* on_call_exclusively(void* me, void* cb_ctx, void **lock, void* udata,
@@ -116,6 +119,8 @@ static int __dispatch_from_buffer(
 {
     sys_t* me = callee;
 
+    printf("got some data: %d\n", len);
+
     uv_mutex_lock(&me->mutex);
     bt_dm_dispatch_from_buffer(me->bc,peer_nethandle,buf,len);
     uv_mutex_unlock(&me->mutex);
@@ -129,6 +134,8 @@ static int __on_peer_connect(
         const int port)
 {
     sys_t* me = callee;
+
+    printf("peer wants to connect %s:%d\n", ip, port);
 
     uv_mutex_lock(&me->mutex);
     bt_dm_peer_connect(me->bc,peer_nethandle,ip,port);
@@ -156,7 +163,8 @@ static void __periodic(uv_timer_t* handle, int status)
     if (me->bc)
     {
         uv_mutex_lock(&me->mutex);
-        fff_periodic(me->fw,1000);
+        if (me->fw)
+            fff_periodic(me->fw,1000);
         bt_dm_periodic(me->bc, &me->stat);
         uv_mutex_unlock(&me->mutex);
     }
@@ -209,7 +217,7 @@ static void __on_tc_add_peer(void* callee,
     peer_nethandle = NULL;
     sprintf(ip_string,"%.*s", ip_len, ip);
 
-#if 0 /* debug */
+#if 1 /* debug */
     printf("adding peer: %s %d\n", ip_string, port);
 #endif
 
@@ -230,6 +238,7 @@ int main(int argc, char **argv)
     DocoptArgs args = docopt(argc, argv, 1, "0.1");
     sys_t me;
 
+    memset(&me,0,sizeof(sys_t));
     me.bc = bt_dm_new();
     me.cfg = bt_dm_get_config(me.bc);
     memset(&me.stat, 0, sizeof(bt_dm_stats_t));
@@ -326,15 +335,13 @@ int main(int argc, char **argv)
 
     if (args.connect)
     {
-        printf("connecting to: %s\n", args.connect);
+        char* port;
 
-        char* end = strstr(args.connect, ":");
-
-        if (end)
+        if ((port = strstr(args.connect, ":")))
         {
             printf("connecting to: %s\n", args.connect);
             __on_tc_add_peer(&me, "", 0,
-                    args.connect, end - args.connect, atoi(end));
+                    args.connect, port - args.connect, atoi(port+1));
         }
     }
 

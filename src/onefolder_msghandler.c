@@ -176,6 +176,19 @@ int of_msghandler_dispatch_from_buffer(void *mh,
                 }
 
                 break;
+            switch (msg->id)
+            {
+            case OF_MSGTYPE_BT:
+
+                if (1 == __read_uint32(&msg->full_log.filelog_len,
+                            &me->msg, &buf,&len))
+                {
+                    //of_conn_have(me->pc,&msg->have);
+                    //__endmsg(&me->msg);
+                    continue;
+                }
+
+                break;
             default:
                 printf("ERROR: bad of msg type: '%d'\n", msg->id);
                 return 0;

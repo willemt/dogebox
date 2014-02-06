@@ -10,7 +10,6 @@ one-folder is..
 - a tool for the decentralised sharing of files in a scalable fashion
 - a Bittorrent Sync clone intending to be compatible with Bittorrent Sync
 - a key mechanism for running your own personal Dropbox.com
-:q
 
 Why?
 ----
