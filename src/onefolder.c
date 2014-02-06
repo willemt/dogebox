@@ -39,7 +39,11 @@ Filepos_getpiece file, pos
 #include "config.h"
 #include "networkfuncs.h"
 #include "linked_list_queue.h"
-#include "filewatcher.h"
+
+#include "onefolder_handshaker.h"
+
+/* for filewatcher */
+#include "fff.h"
 
 #include "docopt.c"
 
@@ -152,6 +156,7 @@ static void __periodic(uv_timer_t* handle, int status)
     if (me->bc)
     {
         uv_mutex_lock(&me->mutex);
+        fff_periodic(me->fw,1000);
         bt_dm_periodic(me->bc, &me->stat);
         uv_mutex_unlock(&me->mutex);
     }
@@ -277,7 +282,11 @@ int main(int argc, char **argv)
             .peer_send = peer_send,
             .peer_disconnect = peer_disconnect, 
             .call_exclusively = on_call_exclusively,
-            .log = __log
+            .log = __log,
+            .handshaker_new = of_handshaker_new,
+            .handshaker_release = of_handshaker_release,
+            .handshaker_dispatch_from_buffer = of_handshaker_dispatch_from_buffer,
+            .handshaker_send_handshake = of_handshaker_send_handshake,
             }), NULL);
 
     if (argc == optind)
@@ -292,7 +301,8 @@ int main(int argc, char **argv)
 
     if (args.folder)
     {
-        me.fw = filewatcher_new(args.folder, loop,
+        printf("watching folder: %s\n", args.folder);
+        me.fw = fff_new(args.folder, loop,
             &((filewatcher_cbs_t){
                 .file_added = file_added, 
                 .file_removed = file_removed, 

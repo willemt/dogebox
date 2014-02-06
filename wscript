@@ -214,6 +214,7 @@ def build(bld):
         target='yabbt',
         lib = libs,
         includes=[
+            './include',
             cp+"CBag",
             cp+"CHeap",
             cp+"CAVLTree",
@@ -257,8 +258,9 @@ def build(bld):
 
     bld.program(
         source=[
-            "onefolder.c",
-            "onefolder_msghandler.c",
+            "src/onefolder.c",
+            "src/onefolder_msghandler.c",
+            "src/onefolder_handshaker.c",
             #"onefolder_handshaker.c",
             cp+"CBitfield/bitfield.c",
             cp+"fff/fff.c",
@@ -277,12 +279,15 @@ def build(bld):
         stlibpath = ['./libuv','.'],
         lib = libs,
         includes=[
+            './include',
             './libuv/include',
+            cp+"fff",
+            # needed by fff
+            cp+"CHeap",
             cp+"CBitfield",
             cp+"CConfig-re",
             cp+"CBipBuffer",
             cp+"YABTorrent/include",
-            cp+"fff",
             cp+"CSimpleBitstream",
             cp+"CLinkedListQueue",
             cp+"CTorrentFileReader",

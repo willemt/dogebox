@@ -16,10 +16,9 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "bitfield.h"
-//#include "onefolder_connection.h"
 #include "onefolder_handshaker.h"
-//#include "onefolder_local.h"
+
+#include "bitfield.h"
 #include "bitstream.h"
 
 typedef struct {
@@ -30,14 +29,15 @@ typedef struct {
     unsigned char* curr_value;
 } of_handshaker_t;
 
-/**
- * Send the handshake
- *
- * @return 0 on failure; 1 otherwise */
 int of_handshaker_send_handshake(
         void* callee,
         void* udata,
-        int (*send)(void *callee, const void *udata, const void *send_data, const int len))
+        int (*send)(void *callee,
+            const void *udata,
+            const void *send_data,
+            const int len),
+        char* expected_ih,
+        char* my_pi)
 {
     char buf[1024], *protocol_name = PROTOCOL_NAME, *ptr;
     int size, ii;
@@ -53,6 +53,8 @@ int of_handshaker_send_handshake(
     /* protocol name */
     bitstream_write_string((unsigned char**)&ptr, protocol_name, strlen(protocol_name));
 
+    size = 1 + strlen(protocol_name);// + 8 + 20 + 20;
+
     if (0 == send(callee, udata, buf, size))
     {
 //        __log(me, "send,handshake,fail");
@@ -67,8 +69,8 @@ void* of_handshaker_new(unsigned char* expected_info_hash, unsigned char* mypeer
     of_handshaker_t* me;
 
     me = calloc(1,sizeof(of_handshaker_t));
-    me->expected_ih = expected_info_hash;
-    me->my_pi = mypeerid;
+//    me->expected_ih = expected_info_hash;
+//    me->my_pi = mypeerid;
     return me;
 }
 
@@ -79,8 +81,6 @@ void of_handshaker_release(void* hs)
     free(me);
 }
 
-/**
- * @return null if handshake was successful */
 of_handshake_t* of_handshaker_get_handshake(void* me_)
 {
     of_handshaker_t* me = me_;
@@ -104,11 +104,6 @@ unsigned char __readbyte(unsigned int* bytes_read, const unsigned char **buf, un
     return val;
 }
 
-/**
- *  Receive handshake from other end
- *  Disconnect on any errors
- *
- *  @return 1 on succesful handshake; 0 on unfinished reading; -1 on failed handshake */
 int of_handshaker_dispatch_from_buffer(void* me_,
         const unsigned char** buf, unsigned int* len)
 {
