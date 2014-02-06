@@ -103,7 +103,7 @@ The file log is a bencoded list of dictionaries with the following key/values:
 +-----------------+-----------+---------------------------------------+
 
 Piece Log
-----------
+---------
 The piece log is a bencoded list of dictionaries with the following key/values:
 
 +----------------+-----------+---------------------------------------+
@@ -307,8 +307,6 @@ Full log messages have the following message format:
 +----------------+-----------+----------------------------------------------+
 | Field name     | Data type | Bits | Comments                              |
 +----------------+-----------+----------------------------------------------+
-#| len            | uint32    |   32 | Length of message payload             |
-#+----------------+-----------+----------------------------------------------+
 | of_id          | byte      |    8 | message type, always equals 2         |
 +----------------+-----------+----------------------------------------------+
 | filelog_len    | uint32    |   32 | Length of file log string             |
@@ -330,7 +328,7 @@ one-folder bittorrent messages have the following message format:
 +----------------+-----------+----------------------------------------------+
 | Field name     | Data type | Bits | Comments                              |
 +----------------+-----------+----------------------------------------------+
-| of_id          | byte      |    4 | OF message type, always equals 3      |
+| of_id          | byte      |    8 | OF message type, always equals 3      |
 +----------------+-----------+----------------------------------------------+
 | payload        | Bittorrent PWP message data                              |
 +----------------+----------------------------------------------------------+
@@ -362,11 +360,11 @@ As time goes on, an Action Log entry message might result in a piece not being a
 +----------------+-----------+----------------------------------------------+
 | Field name     | Data type | Bits | Comments                              |
 +----------------+-----------+----------------------------------------------+
-| len            | uint32    |    4 | Size of payload                       |
+| len            | byte      |    8 | Size of payload                       |
 +----------------+-----------+----------------------------------------------+
-| id             | uint32    |    4 | PWP message type, always equals 9     |
+| id             | uint32    |   32 | PWP message type, always equals 9     |
 +----------------+-----------+----------------------------------------------+
-| piece id       | uint32    |    4 | The piece index                       |
+| piece id       | uint32    |   32 | The piece index                       |
 +----------------+-----------+----------------------------------------------+
 
 TODO

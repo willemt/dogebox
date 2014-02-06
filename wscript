@@ -5,6 +5,7 @@ def options(opt):
         opt.load('compiler_c')
 
 contribs = [
+('fff', 'http://github.com/willemt/fff'),
 ('CBag', 'http://github.com/willemt/CBag'),
 ('CHeap','http://github.com/willemt/CHeap'),
 ('libuv','http://github.com/joyent/libuv'),
@@ -15,7 +16,6 @@ contribs = [
 ('CBipBuffer', 'http://github.com/willemt/CBipBuffer'),
 ('CConfig-re', 'http://github.com/willemt/CConfig-re'),
 ('CEventTimer', 'http://github.com/willemt/CEventTimer'),
-('CFileWatcher', 'http://github.com/willemt/CFileWatcher'),
 ('CTrackerClient', 'http://github.com/willemt/CTrackerClient'),
 ('CSparseCounter', 'http://github.com/willemt/CSparseCounter'),
 ('CLinkedListQueue', 'http://github.com/willemt/CLinkedListQueue'),
@@ -259,9 +259,9 @@ def build(bld):
         source=[
             "onefolder.c",
             "onefolder_msghandler.c",
-            "onefolder_handshaker.c",
+            #"onefolder_handshaker.c",
             cp+"CBitfield/bitfield.c",
-            cp+"CFileWatcher/filewatcher.c",
+            cp+"fff/fff.c",
             cp+"CBipBuffer/bipbuffer.c",
             cp+"YABTorrent/src/mt19937ar.c",
             cp+"YABTorrent/src/networkfuncs_libuv.c",
@@ -282,7 +282,8 @@ def build(bld):
             cp+"CConfig-re",
             cp+"CBipBuffer",
             cp+"YABTorrent/include",
-            cp+"CFileWatcher",
+            cp+"fff",
+            cp+"CSimpleBitstream",
             cp+"CLinkedListQueue",
             cp+"CTorrentFileReader",
             cp+"CHashMapViaLinkedList",
