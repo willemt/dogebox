@@ -20,7 +20,19 @@
 
 #include "bitfield.h"
 #include "onefolder.h"
+#include "onefolder_connection.h"
 #include "onefolder_msghandler.h"
+
+typedef struct {
+
+    int mtype;
+
+    union {
+        msg_fulllog_t fulllog;
+        msg_pwp_t pwp;
+    };
+
+} fake_pc_t;
 
 typedef struct {
 //    uint32_t len;
@@ -28,7 +40,8 @@ typedef struct {
     unsigned int bytes_read;
     unsigned int tok_bytes_read;
     union {
-        msg_fulllog_t full_log;
+        msg_fulllog_t fulllog;
+        msg_pwp_t pwp;
     };
 } msg_t;
 
@@ -150,7 +163,7 @@ int of_msghandler_dispatch_from_buffer(void *mh,
                 break;
             case OF_MSGTYPE_FULLLOG:
                 break;
-            case OF_MSGTYPE_BT:
+            case OF_MSGTYPE_PWP:
                 break;
             default: assert(0); break;
             }
@@ -162,20 +175,18 @@ int of_msghandler_dispatch_from_buffer(void *mh,
             {
             case OF_MSGTYPE_FULLLOG:
                 /* get filelog_len */
-                if (1 == __read_uint32(&msg->full_log.filelog_len,
+                if (1 == __read_uint32(&msg->fulllog.filelog_len,
                             &me->msg, &buf,&len))
                 {
                     me->cb.conn_fulllog(me->pc, &msg->fulllog);
                     __endmsg(&me->msg);
                     continue;
                 }
-
                 break;
-            switch (msg->id)
-            {
+
             case OF_MSGTYPE_PWP:
 
-                if (1 == __read_uint32(&msg->full_log.filelog_len,
+                if (1 == __read_uint32(&msg->fulllog.filelog_len,
                             &me->msg, &buf,&len))
                 {
                     me->cb.conn_pwp(me->pc, &msg->pwp);
@@ -184,10 +195,10 @@ int of_msghandler_dispatch_from_buffer(void *mh,
                 }
 
                 break;
+
             default:
                 printf("ERROR: bad of msg type: '%d'\n", msg->id);
                 return 0;
-                break;
             }
         }
     }

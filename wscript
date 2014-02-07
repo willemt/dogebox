@@ -82,6 +82,7 @@ def unit_test(bld, src, ccflag=None):
             "tests/t_"+src,
             'tests/CuTest.c',
             bld.env.CONTRIB_PATH+"CBitfield/bitfield.c",
+            bld.env.CONTRIB_PATH+"CSimpleBitstream/bitstream.c",
         ],
         target=src[:-2],
         cflags=[
@@ -93,7 +94,8 @@ def unit_test(bld, src, ccflag=None):
         unit_test='yes',
         includes=[
             "./include",
-            bld.env.CONTRIB_PATH+"CBitfield"
+            bld.env.CONTRIB_PATH+"CBitfield",
+            bld.env.CONTRIB_PATH+"CSimpleBitstream",
         ]
         )
 
