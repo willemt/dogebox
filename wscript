@@ -70,19 +70,17 @@ class compiletest(Task):
                             self.outputs[0].abspath()))
 
 def unit_test(bld, src, ccflag=None):
-    #bld(rule='cp ../make-tests.sh .')
-    #bld(rule='cp ../%s .' % src)
     # collect tests into one area
-    bld(rule='sh ../make-tests.sh ../'+src+' > ${TGT}', target="t_"+src)
+    bld(rule='sh ../make-tests.sh ../tests/'+src+' > ${TGT}', target="tests/t_"+src)
 
     libs = []
 
     # build the test program
     bld.program(
         source=[
-            src,
-            "t_"+src,
-            'CuTest.c',
+            "tests/"+src,
+            "tests/t_"+src,
+            'tests/CuTest.c',
             bld.env.CONTRIB_PATH+"CBitfield/bitfield.c",
         ],
         target=src[:-2],
@@ -94,7 +92,7 @@ def unit_test(bld, src, ccflag=None):
         lib = libs,
         unit_test='yes',
         includes=[
-            '.',
+            "./include",
             bld.env.CONTRIB_PATH+"CBitfield"
         ]
         )
@@ -103,8 +101,8 @@ def unit_test(bld, src, ccflag=None):
     if sys.platform == 'win32':
         bld(rule='${SRC}',source=src[:-2]+'.exe')
     else:
-        bld(rule='export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:. && ./${SRC}',source=src[:-2])
-        #bld(rule='pwd && ./build/'+src[:-2])
+        bld(rule='export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:. && ./${SRC}', source=src[:-2])
+
 
 def scenario_test(bld, src, ccflag=None):
     bld(rule='cp ../make-tests.sh .')
@@ -245,6 +243,8 @@ def build(bld):
             '-Werror=pointer-to-int-cast',
             '-Wcast-align'],
         )
+
+    unit_test(bld,'test_msghandler.c')
 
     libs = ['yabbt','uv']
     if sys.platform == 'win32':

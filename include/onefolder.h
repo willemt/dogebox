@@ -1,9 +1,10 @@
 
 #define PROTOCOL_NAME "onefolder20140110"
+
 enum {
     OF_MSGTYPE_KEEPALIVE = 0,
     OF_MSGTYPE_FULLLOG = 1,
-    OF_MSGTYPE_BT = 2,
+    OF_MSGTYPE_PWP = 2,
 };
 
 typedef struct {
@@ -15,13 +16,17 @@ typedef struct {
     //unsigned char* peerid;
 } of_handshake_t;
 
-
 typedef struct {
     int filelog_len;
     int piecelog_len;
     char* filelog;
     char* piecelog;
 } msg_fulllog_t;
+
+typedef struct {
+    int payload_len;
+    unsigned char* payload;
+} msg_pwp_t;
 
 int of_handshaker_send_handshake(
         void* callee,

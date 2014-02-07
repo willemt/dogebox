@@ -87,7 +87,7 @@ File Log
 The file log is a bencoded list of dictionaries with the following key/values:
 
 +-----------------+-----------+---------------------------------------+
-| Filed name      | Data type | Comments                              |
+| Field name      | Data type | Comments                              |
 +-----------------+-----------+---------------------------------------+
 | path            | string    | Path of file                          |
 +-----------------+-----------+---------------------------------------+
@@ -109,7 +109,7 @@ The piece log is a bencoded list of dictionaries with the following key/values:
 +----------------+-----------+---------------------------------------+
 | Field name     | Data type | Comments                              |
 +----------------+-----------+---------------------------------------+
-| piece_idx      | uint32    | Index of piece                        |
+| idx            | uint32    | Index of piece                        |
 +----------------+-----------+---------------------------------------+
 | size           | uint32    | Size of piece in bytes                |
 +----------------+-----------+---------------------------------------+
@@ -299,6 +299,17 @@ Handshake messages have the following message format:
 
 The receiver:
 - If handshake is valid, reply with handshake
+- If handshake is invalid, drop connection
+
+Keep alive message
+~~~~~~~~~~~~~~~~~~
+Keep alive messages ensure the connection with the peer is kept open.
+
++----------------+-----------+----------------------------------------------+
+| Field name     | Data type | Bits | Comments                              |
++----------------+-----------+----------------------------------------------+
+| of_id          | byte      |    8 | message type, always equals 0         |
++----------------+-----------+----------------------------------------------+
 
 Full log message
 ~~~~~~~~~~~~~~~~
@@ -307,19 +318,16 @@ Full log messages have the following message format:
 +----------------+-----------+----------------------------------------------+
 | Field name     | Data type | Bits | Comments                              |
 +----------------+-----------+----------------------------------------------+
-| of_id          | byte      |    8 | message type, always equals 2         |
+| of_id          | byte      |    8 | message type, always equals 1         |
 +----------------+-----------+----------------------------------------------+
 | filelog_len    | uint32    |   32 | Length of file log string             |
 +----------------+-----------+----------------------------------------------+
 | piecelog_len   | uint32    |   32 | Length of piece log string            |
 +----------------+-----------+----------------------------------------------+
-| filelog        | string    |  N/A |                                       |
+| filelog        | string    |  N/A | Bencoded string                       |
 +----------------+-----------+----------------------------------------------+
-| piecelog       | string    |  N/A |                                       |
+| piecelog       | string    |  N/A | Bencoded string                       |
 +----------------+-----------+----------------------------------------------+
-
-The receiver:
-- If handshake is valid, reply with handshake
 
 Bittorrent message
 ~~~~~~~~~~~~~~~~~~
@@ -328,7 +336,9 @@ one-folder bittorrent messages have the following message format:
 +----------------+-----------+----------------------------------------------+
 | Field name     | Data type | Bits | Comments                              |
 +----------------+-----------+----------------------------------------------+
-| of_id          | byte      |    8 | OF message type, always equals 3      |
+| of_id          | byte      |    8 | message type, always equals 2         |
++----------------+-----------+----------------------------------------------+
+| payload_len    | uint32    |   32 | Length of the PWP payload in bytes    |
 +----------------+-----------+----------------------------------------------+
 | payload        | Bittorrent PWP message data                              |
 +----------------+----------------------------------------------------------+

@@ -38,6 +38,9 @@ typedef struct {
 
     /* peer connection */
     void* pc;
+
+    /* callbacks */
+    of_conn_recv_cb_t cb;
 } of_peer_connection_event_handler_t;
 
 static void __endmsg(msg_t* msg)
@@ -110,14 +113,13 @@ static int __read_byte(
     return 1;
 }
 
-/**
- * create a new msg handler */
-void* of_msghandler_new(void *pc)
+void* of_msghandler_new(void *pc, of_conn_recv_cb_t* cb)
 {
     of_peer_connection_event_handler_t* me;
 
     me = calloc(1,sizeof(of_peer_connection_event_handler_t));
     me->pc = pc;
+    memcpy(&me->cb,cb,sizeof(of_conn_recv_cb_t));
     return me;
 }
 
@@ -126,13 +128,6 @@ void of_msghandler_release(void *pc)
     free(pc);
 }
 
-/**
- * Receive this much data.
- * If there is enough data this function will dispatch of_connection events
- * @param mh The message handler object
- * @param buf The data to be read in
- * @param len The length of the data to be read in
- * @return 1 if successful, 0 if the peer needs to be disconnected */
 int of_msghandler_dispatch_from_buffer(void *mh,
         const unsigned char* buf,
         unsigned int len)
@@ -151,6 +146,7 @@ int of_msghandler_dispatch_from_buffer(void *mh,
             switch (msg->id)
             {
             case OF_MSGTYPE_KEEPALIVE:
+                __endmsg(&me->msg);
                 break;
             case OF_MSGTYPE_FULLLOG:
                 break;
@@ -158,7 +154,6 @@ int of_msghandler_dispatch_from_buffer(void *mh,
                 break;
             default: assert(0); break;
             }
-            __endmsg(&me->msg);
         }
         /* messages with a payload: */
         else 
@@ -170,21 +165,21 @@ int of_msghandler_dispatch_from_buffer(void *mh,
                 if (1 == __read_uint32(&msg->full_log.filelog_len,
                             &me->msg, &buf,&len))
                 {
-                    //of_conn_have(me->pc,&msg->have);
-                    //__endmsg(&me->msg);
+                    me->cb.conn_fulllog(me->pc, &msg->fulllog);
+                    __endmsg(&me->msg);
                     continue;
                 }
 
                 break;
             switch (msg->id)
             {
-            case OF_MSGTYPE_BT:
+            case OF_MSGTYPE_PWP:
 
                 if (1 == __read_uint32(&msg->full_log.filelog_len,
                             &me->msg, &buf,&len))
                 {
-                    //of_conn_have(me->pc,&msg->have);
-                    //__endmsg(&me->msg);
+                    me->cb.conn_pwp(me->pc, &msg->pwp);
+                    __endmsg(&me->msg);
                     continue;
                 }
 
