@@ -93,7 +93,10 @@ of_handshake_t* of_handshaker_get_handshake(void* me_)
         return &me->hs;
 }
 
-unsigned char __readbyte(unsigned int* bytes_read, const unsigned char **buf, unsigned int* len)
+static unsigned char __readbyte(
+        unsigned int* bytes_read,
+        const unsigned char **buf,
+        unsigned int* len)
 {
     unsigned char val;
 

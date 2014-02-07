@@ -207,6 +207,9 @@ def build(bld):
             cp+"CTorrentFileReader/torrentfile_reader.c",
             cp+"CHashMapViaLinkedList/linked_list_hashmap.c",
             cp+"CSparseFileAllocator/sparsefile_allocator.c",
+            "src/onefolder_connection.c",
+            "src/onefolder_msghandler.c",
+            "src/onefolder_handshaker.c",
             ],
         #bt_diskmem.c
         #CCircularBuffer/cbuffer.c
@@ -261,8 +264,7 @@ def build(bld):
     bld.program(
         source=[
             "src/onefolder.c",
-            "src/onefolder_msghandler.c",
-            "src/onefolder_handshaker.c",
+
             #"onefolder_handshaker.c",
             cp+"CBitfield/bitfield.c",
             cp+"fff/fff.c",
