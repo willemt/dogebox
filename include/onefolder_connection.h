@@ -10,11 +10,13 @@ typedef struct {
 //    void (*conn_pwp)(of_conn_t* pco, msg_pwp_t *m);
 } of_conn_recv_cb_t;
 
-void *pwp_conn_new();
+typedef struct {
+    int (*conn_pwp_dispatch)(void *mh,
+            const unsigned char* buf,
+            unsigned int len);
+} of_conn_cb_t;
 
-void of_conn_keepalive(of_conn_t* pco);
-
-void of_conn_fulllog(of_conn_t* pco, msg_fulllog_t *m);
-
-void of_conn_pwp(of_conn_t* pco, msg_pwp_t *m);
+/**
+ * @param udata User data that we pass on each callback */
+of_conn_t *of_conn_new(of_conn_cb_t* cb, void* udata);
 

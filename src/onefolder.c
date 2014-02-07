@@ -201,6 +201,14 @@ int file_moved(void* udata, char* name, char* new_name, unsigned long mtime)
     return 0;
 }
 
+static int __pwp_dispatch(void *pc_,
+        const unsigned char* buf, unsigned int len)
+{
+    uv_mutex_lock(&me->mutex);
+    bt_dm_dispatch_from_buffer(me->bc,peer_nethandle,buf,len);
+    uv_mutex_unlock(&me->mutex);
+}
+
 static void __on_tc_add_peer(void* callee,
         char* peer_id,
         unsigned int peer_id_len,

@@ -12,6 +12,20 @@
 #include "onefolder_connection.h"
 #include "onefolder_msghandler.h"
 
+typedef struct {
+    void* udata;
+} conn_private_t;
+
+of_conn_t* of_conn_new(of_conn_cb_t* cb, void* udata)
+{
+    conn_private_t *me;
+
+    me = calloc(sizeof(conn_private_t));
+    me->udata = udata;
+
+    return me;
+}
+
 void of_conn_keepalive(of_conn_t* pco)
 {
 #if 0
@@ -37,4 +51,13 @@ void of_conn_pwp(of_conn_t* pco, msg_pwp_t *m)
     memcpy(&pc->fulllog, m, sizeof(msg_pwp_t));
 #endif
 }
+
+static int of_conn_pwp_dispatch(void *pc_,
+        const unsigned char* buf, unsigned int len)
+{
+    uv_mutex_lock(&me->mutex);
+    bt_dm_dispatch_from_buffer(me->bc,peer_nethandle,buf,len);
+    uv_mutex_unlock(&me->mutex);
+}
+
 

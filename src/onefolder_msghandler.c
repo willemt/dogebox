@@ -193,14 +193,11 @@ int of_msghandler_dispatch_from_buffer(void *mh,
             case OF_MSGTYPE_FULLLOG:
                 if (m->bytes_read < 1 + 4)
                 {
-                    if (1 == __read_uint32(&m->fl.m.filelog_len, m, &buf,&len))
-                    {
-
-                    }
+                    __read_uint32(&m->fl.m.filelog_len, m, &buf, &len);
                 }
                 else if (m->bytes_read < 1 + 4 + 4)
                 {
-                    if (1 == __read_uint32(&m->fl.m.piecelog_len, m, &buf,&len))
+                    if (1 == __read_uint32(&m->fl.m.piecelog_len, m, &buf, &len))
                     {
                         // TODO: get rid of malloc()s please
                         m->fl.m.filelog = malloc(m->fl.m.filelog_len);
@@ -240,13 +237,9 @@ int of_msghandler_dispatch_from_buffer(void *mh,
                 break;
 
             case OF_MSGTYPE_PWP:
-
                 if (m->bytes_read < 1 + 4)
                 {
-                    if (1 == __read_uint32(&m->pwp.m.payload_len, m, &buf, &len))
-                    {
-
-                    }
+                    __read_uint32(&m->pwp.m.payload_len, m, &buf, &len);
                 }
                 else
                 {
@@ -259,7 +252,6 @@ int of_msghandler_dispatch_from_buffer(void *mh,
                 }
                 
                 break;
-
             default:
                 printf("ERROR: bad of msg type: '%d'\n", m->id);
                 return 0;
