@@ -284,11 +284,11 @@ See section 5 for message format.
 =================================
 All messages are sent using the Bittorrent protocol with some specific one-folder extensions.
 
-These are below:
+These extensions are below:
 
 Handshake message
 ~~~~~~~~~~~~~~~~~
-Handshake messages are sent at the beginning of the connection.
+Handshake messages are sent at the beginning of the connection. The Bittorrent handshake is not used.
 Handshake messages have the following message format:
 
 +----------------+-----------+----------------------------------------------+
@@ -303,9 +303,9 @@ The receiver:
 - If handshake is valid, reply with handshake
 - If handshake is invalid, drop connection
 
-Full log message
+File log message
 ~~~~~~~~~~~~~~~~
-Full log messages have the following message format:
+File log messages have the following message format:
 
 +----------------+-----------+----------------------------------------------+
 | Field name     | Data type | Bits | Comments                              |
@@ -314,14 +314,37 @@ Full log messages have the following message format:
 +----------------+-----------+----------------------------------------------+
 | msgtype        | byte      |    8 | message type, always equals 9         |
 +----------------+-----------+----------------------------------------------+
-| filelog_len    | uint32    |   32 | Length of file log string             |
-+----------------+-----------+----------------------------------------------+
-| piecelog_len   | uint32    |   32 | Length of piece log string            |
-+----------------+-----------+----------------------------------------------+
 | filelog        | string    |  N/A | Bencoded string                       |
++----------------+-----------+----------------------------------------------+
+
+Piece log message
+~~~~~~~~~~~~~~~~~
+Piece log messages have the following message format:
+
++----------------+-----------+----------------------------------------------+
+| Field name     | Data type | Bits | Comments                              |
++----------------+-----------+----------------------------------------------+
+| len            | uint32    |   32 | length of payload                     |
++----------------+-----------+----------------------------------------------+
+| msgtype        | byte      |    8 | message type, always equals 10        |
 +----------------+-----------+----------------------------------------------+
 | piecelog       | string    |  N/A | Bencoded string                       |
 +----------------+-----------+----------------------------------------------+
+
+Don't have Message
+~~~~~~~~~~~~~~~~~~
+As time goes on, an Action Log entry message might result in a piece not being available on the node anymore. A PWP_DONTHAVE message is sent when the one-folder client understands that it doesn't have that piece anymore.
+
++----------------+-----------+----------------------------------------------+
+| Field name     | Data type | Bits | Comments                              |
++----------------+-----------+----------------------------------------------+
+| len            | byte      |    8 | Size of payload                       |
++----------------+-----------+----------------------------------------------+
+| id             | uint32    |   32 | PWP message type, always equals 9     |
++----------------+-----------+----------------------------------------------+
+| piece id       | uint32    |   32 | The piece index                       |
++----------------+-----------+----------------------------------------------+
+
 
 6. Peer discovery
 =================
@@ -338,24 +361,6 @@ Shared folders are configured with the following options:
 |                | If a file can be contained within a single   |         |
 |                | piece that piece size will be used.          |         |
 +----------------+----------------------------------------------+---------+
-
-one-folder Peer Wire Protocol extensions
-========================================
-If a peer also uses one-folder, the one-folder Peer Wire Protocol extensions are used.
-
-PWP_DONTHAVE Message
---------------------
-As time goes on, an Action Log entry message might result in a piece not being available on the node anymore. A PWP_DONTHAVE message is sent when the one-folder client understands that it doesn't have that piece anymore.
-
-+----------------+-----------+----------------------------------------------+
-| Field name     | Data type | Bits | Comments                              |
-+----------------+-----------+----------------------------------------------+
-| len            | byte      |    8 | Size of payload                       |
-+----------------+-----------+----------------------------------------------+
-| id             | uint32    |   32 | PWP message type, always equals 9     |
-+----------------+-----------+----------------------------------------------+
-| piece id       | uint32    |   32 | The piece index                       |
-+----------------+-----------+----------------------------------------------+
 
 TODO
 ====

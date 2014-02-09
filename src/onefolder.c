@@ -42,12 +42,23 @@ Filepos_getpiece file, pos
 
 #include "onefolder_handshaker.h"
 
+/* for of_msghandler_new() */
+#include "onefolder_msghandler.h"
+
+/* for pwp_msghandler_item_t */
+#include "pwp_msghandler.h"
+
 /* for filewatcher */
 #include "fff.h"
 
 #include "docopt.c"
 
 #define PROGRAM_NAME "bt"
+
+enum {
+    OF_MSGTYPE_FILELOG = 9,
+    OF_MSGTYPE_PIECELOG = 10,
+};
 
 typedef struct {
     /* bitorrent client */
@@ -204,12 +215,27 @@ int file_moved(void* udata, char* name, char* new_name, unsigned long mtime)
     return 0;
 }
 
-static int __pwp_dispatch(void *pc_,
-        const unsigned char* buf, unsigned int len)
+static void* __new_msghandler(
+        void *callee,
+        void *pc)
 {
+    sys_t* me = callee;
+
+    return of_msghandler_new(pc, callee);
+}
+
+static int __pwp_dispatch_from_buffer(
+        void *callee,
+        const unsigned char* buf,
+        unsigned int len)
+{
+    sys_t* me = callee;
+
     uv_mutex_lock(&me->mutex);
-    bt_dm_dispatch_from_buffer(me->bc,peer_nethandle,buf,len);
+//    bt_dm_dispatch_from_buffer(me->bc,peer_nethandle,buf,len);
     uv_mutex_unlock(&me->mutex);
+
+    return 1;
 }
 
 static void __on_tc_add_peer(void* callee,
@@ -308,6 +334,8 @@ int main(int argc, char **argv)
             .handshaker_release = of_handshaker_release,
             .handshaker_dispatch_from_buffer = of_handshaker_dispatch_from_buffer,
             .handshaker_send_handshake = of_handshaker_send_handshake,
+            .msghandler_new = __new_msghandler
+            //.msghandler_dispatch_from_buffer = __pwp_dispatch_from_buffer,
             }), NULL);
 
     if (argc == optind)

@@ -13,6 +13,7 @@
 #include "onefolder_connection.h"
 #include "onefolder_msghandler.h"
 
+#if 0
 typedef struct {
     int payload_len;
     char* payload;
@@ -77,7 +78,7 @@ int __conn_pwp_dispatch(void *pco, const unsigned char* buf, unsigned int len)
     memcpy(p->pwp.payload, buf, len);
 }
 
-void Testof_keepalive(
+void T_estof_keepalive(
     CuTest * tc
 )
 {
@@ -98,7 +99,7 @@ void Testof_keepalive(
     of_msghandler_release(mh);
 }
 
-void Testof_fulllog(
+void T_estof_fulllog(
     CuTest * tc
 )
 {
@@ -127,7 +128,7 @@ void Testof_fulllog(
     of_msghandler_release(mh);
 }
 
-void Testof_pwp(
+void T_estof_pwp(
     CuTest * tc
 )
 {
@@ -151,3 +152,4 @@ void Testof_pwp(
     of_msghandler_release(mh);
 }
 
+#endif

@@ -1,11 +1,13 @@
 
 #define PROTOCOL_NAME "onefolder20140110"
 
+#if 0
 enum {
     OF_MSGTYPE_KEEPALIVE = 0,
     OF_MSGTYPE_FULLLOG = 1,
     OF_MSGTYPE_PWP = 2,
 };
+#endif
 
 typedef struct {
     /* protocol name */

@@ -20,9 +20,21 @@
 
 #include "bitfield.h"
 #include "onefolder.h"
+
+/* for msg_have_t and friends */
+#include "pwp_connection.h"
+
+#include "pwp_msghandler.h"
+
+/* for msg_t and private msghandler_t fields */
+#include "pwp_msghandler_private.h"
+
+/* for calling of_conn_ functions */
 #include "onefolder_connection.h"
+
 #include "onefolder_msghandler.h"
 
+#if 0
 #undef min
 #define min(a,b) ((a) < (b) ? (a) : (b))
 
@@ -260,5 +272,34 @@ int of_msghandler_dispatch_from_buffer(void *mh,
     }
 
     return 1;
+}
+#endif
+
+
+int of_pwp_filelog(pwp_msghandler_private_t *me, msg_t* m, void* udata,
+        const unsigned char** buf, unsigned int *len)
+{
+//    pwp_conn_have(me->pc, &m->hve);
+    mh_endmsg(me);
+
+    return 1;
+}
+
+int of_pwp_piecelog(pwp_msghandler_private_t *me, msg_t* m, void* udata,
+        const unsigned char** buf, unsigned int *len)
+{
+//    pwp_conn_have(me->pc, &m->hve);
+    mh_endmsg(me);
+
+    return 1;
+}
+
+void* of_msghandler_new(void* pc, void* udata)
+{
+    pwp_msghandler_item_t handlers[] = {
+        {(void*)of_pwp_filelog, udata},
+        {(void*)of_pwp_piecelog, udata}
+    };
+    return pwp_msghandler_new2(pc, handlers, 2, 0);
 }
 

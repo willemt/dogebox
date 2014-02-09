@@ -293,6 +293,7 @@ def build(bld):
             cp+"CBipBuffer",
             cp+"YABTorrent/include",
             cp+"CSimpleBitstream",
+            cp+"PeerWireProtocol",
             cp+"CLinkedListQueue",
             cp+"CTorrentFileReader",
             cp+"CHashMapViaLinkedList",
