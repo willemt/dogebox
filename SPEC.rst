@@ -282,7 +282,9 @@ See section 5 for message format.
 
 5. Transmitting Bittorrent pieces
 =================================
-The bittorrent protocol is encapsulated within one-folder messages.
+All messages are sent using the Bittorrent protocol with some specific one-folder extensions.
+
+These are below:
 
 Handshake message
 ~~~~~~~~~~~~~~~~~
@@ -301,16 +303,6 @@ The receiver:
 - If handshake is valid, reply with handshake
 - If handshake is invalid, drop connection
 
-Keep alive message
-~~~~~~~~~~~~~~~~~~
-Keep alive messages ensure the connection with the peer is kept open.
-
-+----------------+-----------+----------------------------------------------+
-| Field name     | Data type | Bits | Comments                              |
-+----------------+-----------+----------------------------------------------+
-| of_id          | byte      |    8 | message type, always equals 0         |
-+----------------+-----------+----------------------------------------------+
-
 Full log message
 ~~~~~~~~~~~~~~~~
 Full log messages have the following message format:
@@ -318,7 +310,9 @@ Full log messages have the following message format:
 +----------------+-----------+----------------------------------------------+
 | Field name     | Data type | Bits | Comments                              |
 +----------------+-----------+----------------------------------------------+
-| of_id          | byte      |    8 | message type, always equals 1         |
+| len            | uint32    |   32 | length of payload                     |
++----------------+-----------+----------------------------------------------+
+| msgtype        | byte      |    8 | message type, always equals 9         |
 +----------------+-----------+----------------------------------------------+
 | filelog_len    | uint32    |   32 | Length of file log string             |
 +----------------+-----------+----------------------------------------------+
@@ -328,20 +322,6 @@ Full log messages have the following message format:
 +----------------+-----------+----------------------------------------------+
 | piecelog       | string    |  N/A | Bencoded string                       |
 +----------------+-----------+----------------------------------------------+
-
-Bittorrent message
-~~~~~~~~~~~~~~~~~~
-one-folder bittorrent messages have the following message format:
-
-+----------------+-----------+----------------------------------------------+
-| Field name     | Data type | Bits | Comments                              |
-+----------------+-----------+----------------------------------------------+
-| of_id          | byte      |    8 | message type, always equals 2         |
-+----------------+-----------+----------------------------------------------+
-| payload_len    | uint32    |   32 | Length of the PWP payload in bytes    |
-+----------------+-----------+----------------------------------------------+
-| payload        | Bittorrent PWP message data                              |
-+----------------+----------------------------------------------------------+
 
 6. Peer discovery
 =================

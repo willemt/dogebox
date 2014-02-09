@@ -68,6 +68,9 @@ typedef struct {
     /* tracker client */
     void* tc;
 
+    /* of message handler */
+    void* mh;
+
     bt_dm_stats_t stat;
 
     uv_mutex_t mutex;
@@ -250,6 +253,7 @@ int main(int argc, char **argv)
     me.bc = bt_dm_new();
     me.cfg = bt_dm_get_config(me.bc);
     memset(&me.stat, 0, sizeof(bt_dm_stats_t));
+
 
 #if 0
     status = config_read(cfg, "yabtc", "config");
