@@ -264,7 +264,7 @@ def build(bld):
     bld.program(
         source=[
             "src/onefolder.c",
-
+            "src/file2piece_mapper.c",
             #"onefolder_handshaker.c",
             cp+"CBitfield/bitfield.c",
             cp+"fff/fff.c",

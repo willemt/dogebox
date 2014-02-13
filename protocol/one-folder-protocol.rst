@@ -388,5 +388,5 @@ TODO
 - Shared secrets
 - DHT peer discovery
 - LAN broadcast peer discovery
-- Encrypted piece transmission
+- Encrypted transmission
 

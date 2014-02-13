@@ -40,6 +40,9 @@ Filepos_getpiece file, pos
 #include "networkfuncs.h"
 #include "linked_list_queue.h"
 
+/* for f2p_t */
+#include "file2piece_mapper.h"
+
 #include "onefolder_handshaker.h"
 
 /* for of_msghandler_new() */
@@ -72,6 +75,9 @@ typedef struct {
 
     /* disk cache */
     void* dc;
+
+    /* piece mapper */
+    f2p_t* pm;
 
     /* configuration */
     void* cfg;
@@ -187,31 +193,40 @@ static void __periodic(uv_timer_t* handle, int status)
 }
 
 int file_added(
-    void* udata,
+    void* callee,
     char* name,
     int is_dir,
     unsigned int size,
     unsigned long mtime)
 {
+    sys_t* me = callee;
+
     printf("added: %s %dB %d\n", name, size, is_dir);
+    f2p_file_added(me->pm, name, is_dir, size, mtime);
     return 0;
 }
 
-int file_removed(void* udata, char* name)
+int file_removed(void* callee, char* name)
 {
+    sys_t* me = callee;
     printf("removed: %s\n", name);
+    f2p_file_removed(me->pm, name);
     return 0;
 }
 
-int file_changed(void* udata, char* name, int new_size, unsigned long mtime)
+int file_changed(void* callee, char* name, int new_size, unsigned long mtime)
 {
+    sys_t* me = callee;
     printf("changed: %s %d\n", name, new_size);
+    f2p_file_changed(me->pm, name, new_size, mtime);
     return 0;
 }
 
-int file_moved(void* udata, char* name, char* new_name, unsigned long mtime)
+int file_moved(void* callee, char* name, char* new_name, unsigned long mtime)
 {
+    sys_t* me = callee;
     printf("moved: %s %s\n", name, new_name);
+    f2p_file_moved(me->pm, name, new_name, mtime);
     return 0;
 }
 
@@ -292,16 +307,11 @@ int main(int argc, char **argv)
     config_set(me.cfg, "my_peerid", bt_generate_peer_id());
     assert(config_get(me.cfg, "my_peerid"));
 
-    /* database for dumping pieces to disk */
-    me.fd = bt_filedumper_new();
-
-    /* Disk Cache */
     me.dc = bt_diskcache_new();
-    /* point diskcache to filedumper */
+    me.fd = bt_filedumper_new();
     bt_diskcache_set_disk_blockrw(me.dc,
             bt_filedumper_get_blockrw(me.fd), me.fd);
 
-    /* Piece DB */
     me.db = bt_piecedb_new();
     bt_piecedb_set_diskstorage(me.db,
             bt_diskcache_get_blockrw(me.dc), me.dc);
@@ -309,6 +319,9 @@ int main(int argc, char **argv)
             &((bt_piecedb_i) {
             .get_piece = bt_piecedb_get
             }), me.db);
+
+    /* 2mb pieces */
+    me.pm = f2p_new(me.db, 1 << 21);
 
     /* Selector */
     bt_dm_set_piece_selector(me.bc, &((bt_pieceselector_i) {
