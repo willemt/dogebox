@@ -148,8 +148,8 @@ When receiving this message, we:
     - if handshake is valid, reply with handshake, and send our piece and file log
     - if handshake is invalid, drop the connection
 
-*highest_piece*
-This is required within the handshake so that clients are able to construct a Merkle hash. For a Merkle hash it is necessary that we know how many pieces there could be.
+**highest_piece**
+*This is required within the handshake so that clients are able to construct a Merkle hash. For a Merkle hash it is necessary that we know how many pieces there could be.*
 
 File log message
 ~~~~~~~~~~~~~~~~
@@ -182,7 +182,7 @@ When receiving this message we:
       file info from our database to be sent to the peer. After we've processed
       the whole file log we send a subset of our piece log.
 
-*File Log subset*
+**File Log subset**
 This subset consists of files:
 
     - belonging to us which have a higher mtime than the peer
@@ -218,11 +218,12 @@ When receiving this message, we:
 
 If we replace our piece info with a newer piece info, we:
 
-    - send a DONTHAVE message to all our peers, only if we had a complete
-      version of the piece before the update. The updated piece index is the
-      argument for the message
+    - if we had a complete version of the piece before the update, send a
+      DONTHAVE message to all our peers. The updated piece index is the
+      argument for the message *(We do this to prevent peers from assuming we
+      have the most recent piece data)*
 
-*Piece Log subset*
+**Piece Log subset**
 This subset consists of pieces:
 
     - belonging to us which have a higher mtime than the peer
@@ -251,56 +252,7 @@ TODO
 
 6. File alteration monitoring
 =============================
-*Note: Compliance within this section is not required for a client to be compatible with OFP. This section is only meant to provide guidance to the OFP implementor.*
-
-Clients need to monitor the following filesystem events:
-
-Creation
-~~~~~~~~
-+----------------+----------------------------------------------+
-| Parameter name | Comments                                     |
-+----------------+----------------------------------------------+
-| path           | The path name of the file                    |
-+----------------+----------------------------------------------+
-| is_dir         | Whether or not the file is a                 |
-|                | directory                                    |
-+----------------+----------------------------------------------+
-| size           | Size of the file in bytes                    |
-+----------------+----------------------------------------------+
-| mtime          | When the file was last modified              |
-+----------------+----------------------------------------------+
-
-Removal
-~~~~~~~
-+----------------+----------------------------------+
-| Parameter name | Comments                         |
-+----------------+----------------------------------+
-| path           | The full path of the file        |
-+----------------+----------------------------------+
-
-Rename
-~~~~~~
-+----------------+----------------------------------+
-| Parameter name | Comments                         |
-+----------------+----------------------------------+
-| path           | The full path of the file        |
-+----------------+----------------------------------+
-| new path       | The new path of the file         |
-+----------------+----------------------------------+
-| mtime          | File's last modified time        |
-+----------------+----------------------------------+
-
-Write
-~~~~~
-+----------------+----------------------------------+
-| Parameter name | Comments                         |
-+----------------+----------------------------------+
-| path           | The full path of the file        |
-+----------------+----------------------------------+
-| new size       | Size in bytes of file            |
-+----------------+----------------------------------+
-| mtime          | File's last modified time        |
-+----------------+----------------------------------+
+Please see FileAlterationMonitoringGuidance.rst for details.
 
 TODO
 ====
