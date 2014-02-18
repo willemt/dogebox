@@ -78,13 +78,13 @@ There are 2^32 possible pieces within one-folder. This is in-line with the Bitto
 
  Pieces represent data chunks of *up to* 2mb in size.
 
-OFP uses a modified form of the Bittorrent Peer Wire Protocol to allow variable sized pieces. Some files can be held within a single piece, and might not take up all of the piece space. The Piece Log (mentioned in section 3) describes the size each piece.
+OFP uses a modified form of the Bittorrent Peer Wire Protocol to allow variable sized pieces. Some files can be held within a single piece, and might not take up all of the piece space. The Piece Log (mentioned in section 3) describes the size of each piece.
 
- Files have a one-to-many relationship with pieces. This relationship is specified by a piece index (unsigned 32bit integer) and piece range (unsigned 32bit integer)
+ Files have a one-to-many relationship with pieces. This relationship is specified by a piece index (unsigned 32bit integer) and a number of pieces (unsigned 32bit integer). This is known as a piece range.
  
-This means that files must be mapped to a contiguous range of pieces (the ordering is based off the piece index). For example, readme.txt could have a piece start index of 2 with a piece range of 3, ie. readme.txt is made up of pieces 2, 3, 4, 5. 
+This means that files must be mapped to a contiguous range of pieces (the ordering is based off the piece index). For example, readme.txt could have a piece start index of 2 with a piece range of 3, ie. readme.txt is made up of pieces 2, 3, 4, 5.
 
- Files are assigned a piece mapping by choosing a random piece index that allows a piece range that supports the entire file's size, without overlaping with any mapped pieces.
+ Files are assigned a piece mapping by choosing a random piece index that allows a piece range that supports the entire file's size. The file can't have pieces that overlap with any already mapped pieces.
 
 The piece range is dependent on the size of the file. For example, you will need at least 5 pieces to represent a 10mb file.
 
@@ -147,7 +147,7 @@ Action log
     | the "action_type" field. The action fields are below.              |
     +--------------------------------------------------------------------+
 
-Below is a listing of all the actions types:
+Below is a listing of all the action types:
 
 map_piece
 ~~~~~~~~~
@@ -156,7 +156,7 @@ A piece is mapped to a file.
     +----------------+-----------+---------------------------------------+
     | Field name     | Data type | Comments                              |
     +----------------+-----------+---------------------------------------+
-    | file_name      | string    | Path of file                          |
+    | path           | string    | Path of file                          |
     |                |           |                                       |
     +----------------+-----------+---------------------------------------+
     | offset         | uint32    | Byte offset within file               |
@@ -176,7 +176,7 @@ A piece is unmapped. This is done when a file removed, and a piece has a referen
     +----------------+-----------+---------------------------------------+
     | Field name     | Data type | Comments                              |
     +----------------+-----------+---------------------------------------+
-    | file_name      | string    | Path of file                          |
+    | path           | string    | Path of file                          |
     +----------------+-----------+---------------------------------------+
     | piece_idx      | uint32    | Piece index                           |
     +----------------+-----------+---------------------------------------+
@@ -214,7 +214,7 @@ This occurs when files are removed.
     +----------------+-----------+---------------------------------------+
     | Field name     | Data type | Comments                              |
     +----------------+-----------+---------------------------------------+
-    | file_name      | string    | Path of file                          |
+    | path           | string    | Path of file                          |
     +----------------+-----------+---------------------------------------+
 
 When receiving this message the Client:
@@ -240,25 +240,7 @@ When receiving this message the Client:
 
 new_file
 ~~~~~~~~
-This occurs when files are created. 
-
-    +-----------------+-----------+---------------------------------------+
-    | Field name      | Data type | Comments                              |
-    +-----------------+-----------+---------------------------------------+
-    | path            | string    | Path of file                          |
-    +-----------------+-----------+---------------------------------------+
-    | size            | uint32    | Size (in bytes) of file               |
-    +-----------------+-----------+---------------------------------------+
-    | piece idx_start | uint32    | The starting piece index of the file  |
-    +-----------------+-----------+---------------------------------------+
-    | piece idx_end   | uint32    | The ending piece index of the file    |
-    +-----------------+-----------+---------------------------------------+
-    | mtime           | uint32    | Last modified time of file meta data  |
-    +-----------------+-----------+---------------------------------------+
-
-When receiving this message the Client:
-
-    - Inserts a new entry into the File Log using the provided values.
+NOTE: new files are not handled by the action log. The client simply sends the new file within a filelog message.
 
 4. Maintaining log concensus (WIP)
 ==================================
@@ -316,11 +298,17 @@ Handshake messages have the following message format:
     +----------------+-----------+----------------------------------------------+
     | protname       | string    |  N/A | Name of protocol                      |
     +----------------+-----------+----------------------------------------------+
+    | highest_piece  | uint32    |   32 | The highest piece index that the      |
+    |                |           |      | client is aware of                    |
+    +----------------+-----------+----------------------------------------------+
 
 When receiving this message the Client:
 
     - If handshake is valid, reply with handshake
     - If handshake is invalid, drop connection
+
+*highest_piece*
+This is required within the handshake so that clients are able to construct a merkel hash. For a merkel hash it is necessary that we know how many pieces there could be.
 
 File log message
 ~~~~~~~~~~~~~~~~

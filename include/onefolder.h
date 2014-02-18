@@ -13,6 +13,10 @@ enum {
     /**
      * Indicate to our peer that we don't have this piece anymore */
     OF_MSGTYPE_DONTHAVE = 3,
+
+    /**
+     * Indicate to our peer that we don't have this piece anymore */
+    OF_MSGTYPE_ACTIONLOG = 4,
 };
 
 typedef struct {
