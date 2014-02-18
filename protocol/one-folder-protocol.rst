@@ -333,8 +333,15 @@ File log messages have the following message format:
     +----------------+-----------+----------------------------------------------+
     | msgtype        | byte      |    8 | message type, always equals 9         |
     +----------------+-----------+----------------------------------------------+
-    | filelog        | string    |  N/A | Bencoded string                       |
+    | filelog        | string    |  N/A | Section 2 described bencoded string   |
     +----------------+-----------+----------------------------------------------+
+
+When receiving this message the Client:
+
+    - If we don't have a file that has the same path, we add the file to our
+      database, and create the file in our local directory
+    - If a file's mtime is less than ours, we ignore the file and enque the file
+      info from our database to be sent to the peer
 
 Piece log message
 ~~~~~~~~~~~~~~~~~
@@ -347,14 +354,28 @@ Piece log messages have the following message format:
     +----------------+-----------+----------------------------------------------+
     | msgtype        | byte      |    8 | message type, always equals 10        |
     +----------------+-----------+----------------------------------------------+
-    | piecelog       | string    |  N/A | Bencoded string                       |
+    | piecelog       | string    |  N/A | Section 2 described bencoded string   |
     +----------------+-----------+----------------------------------------------+
+
+When receiving this message, we: 
+
+    - add the piece to our database, if we don't have a piece that has the same index database
+    - update our database with this piece's info. If a pieces's mtime is higher
+      than ours. See below paragraph for how the replacement works
+    - we ignore the piece and enque the piece info from our database to be sent
+      to the peer, if a pieces's mtime is less than ours, 
+
+If we replace our piece info with a newer piece info, we:
+
+    - send a DONTHAVE message to all our peers, only if we had a complete
+      version of the piece before the update. The updated piece index is the
+      argument for the message
 
 Don't have Message
 ~~~~~~~~~~~~~~~~~~
 As time goes on, an Action Log entry message might result in a piece not being available on the node anymore.
 
-    A PWP_DONTHAVE message is sent to it's peers when the OFP client understands that it doesn't have the up-to-date version of that piece anymore.
+    A DONTHAVE message is sent to it's peers when the OFP client understands that it doesn't have the up-to-date version of that piece anymore.
 
     +----------------+-----------+----------------------------------------------+
     | Field name     | Data type | Bits | Comments                              |
