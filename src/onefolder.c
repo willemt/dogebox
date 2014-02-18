@@ -40,6 +40,9 @@ Filepos_getpiece file, pos
 #include "networkfuncs.h"
 #include "linked_list_queue.h"
 
+/* for iterating through f2p hashmap */
+#include "linked_list_hashmap.h"
+
 /* for f2p_t */
 #include "file2piece_mapper.h"
 
@@ -47,6 +50,10 @@ Filepos_getpiece file, pos
 
 /* for of_msghandler_new() */
 #include "onefolder_msghandler.h"
+
+/* for piggy backing on PWP_ msg types */
+#include "bitfield.h"
+#include "pwp_connection.h"
 
 /* for pwp_msghandler_item_t */
 #include "pwp_msghandler.h"
@@ -285,6 +292,55 @@ static void __on_tc_add_peer(void* callee,
     uv_mutex_unlock(&me->mutex);
 }
 
+void of_conn_filelog(void* pc, const unsigned char* buf, unsigned int len)
+{
+    printf("%.*s\n", len, buf);
+}
+
+/**
+ * @param pc Peer connection
+ * @param pnethandle Peer net handle context */
+static void handshake_success(
+        void* download_mgr,
+        void* udata,
+        void* pc,
+        void* pnethandle)
+{
+    unsigned char data[1000], *ptr = data;
+    hashmap_iterator_t i;
+    sys_t* me = udata;
+    hashmap_t* files;
+    
+    files = f2p_get_files(me->pm);
+
+    for (hashmap_iterator(files, &i); hashmap_iterator_has_next(files, &i);)
+    {
+        unsigned char bencode[1000];
+        file_t* f = hashmap_iterator_next(files, &i);
+
+        sprintf(bencode,
+                "l"
+                "d"
+                "4:path%d:%s"
+                "4:sizei%de"
+                "10:is_deleted1:n"
+                "15:piece_idx_starti%de"
+                "13:piece_idx_endi%de"
+                "5:mtimei%de"
+                "e"
+                "e",
+                f->path, f->size, f->piece_start, f->npieces, f->mtime);
+
+        bitstream_write_uint32(&ptr, fe(1 + strlen(bencode)));
+        bitstream_write_ubyte(&ptr, PWP_MSGTYPE_CANCEL + OF_MSGTYPE_FILELOG);
+        bitstream_write_string(&ptr, bencode);
+        peer_send(me, NULL, pnethandle, data, strlen(ptr));
+    }
+
+    sprintf(data,"e");
+    peer_send(me, NULL, pnethandle, data, strlen(data));
+}
+
 int main(int argc, char **argv)
 {
     DocoptArgs args = docopt(argc, argv, 1, "0.1");
@@ -347,7 +403,8 @@ int main(int argc, char **argv)
             .handshaker_release = of_handshaker_release,
             .handshaker_dispatch_from_buffer = of_handshaker_dispatch_from_buffer,
             .handshaker_send_handshake = of_handshaker_send_handshake,
-            .msghandler_new = __new_msghandler
+            .handshake_success = handshake_success,
+            .msghandler_new = __new_msghandler,
             //.msghandler_dispatch_from_buffer = __pwp_dispatch_from_buffer,
             }), NULL);
 

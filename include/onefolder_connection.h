@@ -20,3 +20,4 @@ typedef struct {
  * @param udata User data that we pass on each callback */
 of_conn_t *of_conn_new(of_conn_cb_t* cb, void* udata);
 
+void of_conn_filelog(void* pc, const unsigned char* filelog, unsigned int len);

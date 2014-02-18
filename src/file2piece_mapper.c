@@ -17,18 +17,6 @@ typedef struct {
     unsigned int piece_size;
 } f2p_private_t;
 
-typedef struct file_s {
-    char* path;
-    unsigned int size;
-    unsigned int mtime;
-    int is_dir;
-    void* udata;
-    /* piece index */
-    int piece_start;
-    /* number of pieces */
-    int pieces;
-} file_t;
-
 /**
  * djb2 by Dan Bernstein. */
 static unsigned long __file_hash(const void *obj)
@@ -123,3 +111,22 @@ int f2p_file_moved(
     return 0;
 }
 
+#if 0
+void f2p_iter_new(f2p_file_iter_t* iter)
+{
+
+}
+
+file_t* f2p_iter_next(f2p_file_iter_t* iter)
+{
+
+    return NULL;
+}
+#endif
+
+void* f2p_get_files(f2p_t* me_)
+{
+    f2p_private_t* me = (void*)me_;
+
+    return me->files;
+}

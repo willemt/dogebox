@@ -63,22 +63,21 @@ static int of_conn_pwp_dispatch(void *pc_,
 }
 #endif
 
-void of_conn_filelog(of_conn_t* pco, char* filelog)
-{
 #if 0
+void of_conn_filelog(of_conn_t* pco, char* filelog, int len)
+{
     fake_pc_t* pc = (void*)pco;
     pc->mtype = OF_MSGTYPE_FULLLOG;
     memcpy(&pc->fulllog, m, sizeof(msg_fulllog_t));
-#endif
 }
+#endif
 
-void of_conn_piecelog(of_conn_t* pco, char* filelog)
-{
 #if 0
+void of_conn_piecelog(of_conn_t* pco, char* filelog, int len)
+{
     fake_pc_t* pc = (void*)pco;
     pc->mtype = OF_MSGTYPE_FULLLOG;
     memcpy(&pc->fulllog, m, sizeof(msg_fulllog_t));
-#endif
 }
-
+#endif
 

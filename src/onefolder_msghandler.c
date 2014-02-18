@@ -34,10 +34,10 @@
 
 #include "onefolder_msghandler.h"
 
-#if 0
 #undef min
 #define min(a,b) ((a) < (b) ? (a) : (b))
 
+#if 0
 typedef struct {
     int fl_read;
     int pl_read;
@@ -279,8 +279,12 @@ int of_msghandler_dispatch_from_buffer(void *mh,
 int of_pwp_filelog(pwp_msghandler_private_t *me, msg_t* m, void* udata,
         const unsigned char** buf, unsigned int *len)
 {
-//    pwp_conn_have(me->pc, &m->hve);
+    int size = min(*len, m->len - 1);
+
+    of_conn_filelog(me->pc, *buf, size);
     mh_endmsg(me);
+    *buf += size;
+    *len -= size;
 
     return 1;
 }

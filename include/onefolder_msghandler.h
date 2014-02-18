@@ -1,7 +1,6 @@
 
 /**
  * @return new msg handler */
-//void* of_msghandler_new(void *pc, of_conn_recv_cb_t* cb);
 void* of_msghandler_new(void* pc, void* udata);
 
 /**

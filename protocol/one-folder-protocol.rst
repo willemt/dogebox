@@ -111,7 +111,7 @@ File Log
     +-----------------+-----------+---------------------------------------+
     | piece_idx_start | uint32    | The starting piece index of the file  |
     +-----------------+-----------+---------------------------------------+
-    | piece_idx_end   | uint32    | The ending piece index of the file    |
+    | pieces          | uint32    | Number of pieces used by this file    |
     +-----------------+-----------+---------------------------------------+
     | mtime           | uint32    | Last modified time of file meta data  |
     +-----------------+-----------+---------------------------------------+
