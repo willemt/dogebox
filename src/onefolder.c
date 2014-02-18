@@ -259,7 +259,6 @@ static int __pwp_dispatch_from_buffer(
     uv_mutex_lock(&me->mutex);
 //    bt_dm_dispatch_from_buffer(me->bc,peer_nethandle,buf,len);
     uv_mutex_unlock(&me->mutex);
-
     return 1;
 }
 
@@ -295,6 +294,70 @@ static void __on_tc_add_peer(void* callee,
     uv_mutex_unlock(&me->mutex);
 }
 
+static void __process_file_dict(sys_t* me, bencode_t* dict)
+{
+    // TODO: switch away from path
+    char path[1000];
+    int pathlen = 0;
+    int fsize = 0;
+    int piece_idx_start = 0;
+    int pieces = 0;
+    unsigned int mtime = 0;
+
+    while (bencode_dict_has_next(&dict))
+    {
+        bencode_t benk;
+        const char *key;
+        int klen;
+
+        bencode_dict_get_next(&dict, &benk, &key, &klen);
+
+        if (!strncmp(key, "path", klen))
+        {
+            bencode_string_value(&benk, &path, &pathlen);
+        }
+        else if (!strncmp(key, "size", klen))
+        {
+            bencode_int_value(&benk, &fsize);
+        }
+        else if (!strncmp(key, "is_deleted", klen))
+        {
+            //bencode_string_value(&benk, &fsize);
+        }
+        else if (!strncmp(key, "piece_idx_start", klen))
+        {
+            bencode_int_value(&benk, &piece_idx_start);
+        }
+        else if (!strncmp(key, "pieces", klen))
+        {
+            bencode_int_value(&benk, &pieces);
+        }
+        else if (!strncmp(key, "mtime", klen))
+        {
+            bencode_int_value(&benk, &mtime);
+        }
+    }
+
+    file_t* f = f2p_get_file_from_path(me->pm);
+
+    if (!f)
+    {
+        /* files from file logs are files by default */
+        f2p_file_added(me->pm, path, 0, size, mtime);
+    }
+    else if (f->mtime < mtime)
+    {
+        if (f->size != size)
+        {
+            f2p_file_changed(me->pm, name, size, mtime);
+        }
+        else
+        {
+            f2p_file_remap(me->pm, name, piece_idx_start, pieces);
+        }
+    }
+}
+
 void of_conn_filelog(void* pc, const unsigned char* buf, unsigned int len)
 {
     bencode_t ben;
@@ -313,67 +376,7 @@ void of_conn_filelog(void* pc, const unsigned char* buf, unsigned int len)
         bencode_t dict;
 
         bencode_list_get_next(list, &dict);
-
-        // TODO: switch away from path
-        char path[1000];
-        int pathlen = 0;
-        int fsize = 0;
-        int piece_idx_start = 0;
-        int pieces = 0;
-        unsigned int mtime = 0;
-
-        while (bencode_dict_has_next(&dict))
-        {
-            bencode_t benk;
-            const char *key;
-            int klen;
-
-            bencode_dict_get_next(&dict, &benk, &key, &klen);
-
-            if (!strncmp(key, "path", klen))
-            {
-                bencode_string_value(&benk, &path, &pathlen);
-            }
-            else if (!strncmp(key, "size", klen))
-            {
-                bencode_int_value(&benk, &fsize);
-            }
-            else if (!strncmp(key, "is_deleted", klen))
-            {
-                //bencode_string_value(&benk, &fsize);
-            }
-            else if (!strncmp(key, "piece_idx_start", klen))
-            {
-                bencode_int_value(&benk, &piece_idx_start);
-            }
-            else if (!strncmp(key, "pieces", klen))
-            {
-                bencode_int_value(&benk, &pieces);
-            }
-            else if (!strncmp(key, "mtime", klen))
-            {
-                bencode_int_value(&benk, &mtime);
-            }
-        }
-
-        file_t* f = f2p_get_file_from_path(me->pm);
-
-        if (!f)
-        {
-            /* files from file logs are files by default */
-            f2p_file_added(me->pm, path, 0, size, mtime);
-        }
-        else if (f->mtime < mtime)
-        {
-            if (f->size != size)
-            {
-                f2p_file_changed(me->pm, name, size, mtime);
-            }
-            else
-            {
-                f2p_file_remap(me->pm, name, piece_idx_start, pieces);
-            }
-        }
+        __process_file_dict(me, &dict);
     }
 }
 

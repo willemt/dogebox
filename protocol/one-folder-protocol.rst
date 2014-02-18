@@ -1,4 +1,4 @@
-one-folder Specification 20140211
+one-folder Specification 20140219
 =================================
 The one-folder protocol (OFP) is a variant of the Bittorrent peer wire protocol.
 
@@ -37,11 +37,10 @@ The piece range is dependent on the size of the file. For example, you will need
 
 2. Maintaining file and piece event logs
 ========================================
-Three logs are recorded by OFP:
+Two logs are recorded by OFP:
 
 - File log, a listing of file metadata (eg. mapping between files and pieces)
 - Piece log, a listing of piece metadata (eg. piece content hashes)  
-- Action log, a listing of actions that have been actioned on the File and Piece logs
 
 File Log
 --------
@@ -84,131 +83,19 @@ Piece Log
     | mtime          | uint32    | Last modified time of piece metadata  |
     +----------------+-----------+---------------------------------------+
 
-Action log
-----------
-    The action log is a bencoded list of dictionaries.
-    The number of dictionary key/values depends on the "action_type" field. See structure below:
-    +----------------+-----------+---------------------------------------+
-    | Field name     | Data type | Comments                              |
-    +----------------+-----------+---------------------------------------+
-    | log_id         | uint32    | Unique ID of action                   |
-    |                |           |                                       |
-    +----------------+-----------+---------------------------------------+
-    | action_type    | string    | The type of action                    |
-    +----------------+-----------+---------------------------------------+
-    | The fields specific to the action are determined by the value of   |
-    | the "action_type" field. The action fields are below.              |
-    +--------------------------------------------------------------------+
-
-Each peer's action log is independent of other peer's action logs.
-
-Below is a listing of all the action types:
-
-map_piece
-~~~~~~~~~
-A piece is mapped to a file.
-
-    +----------------+-----------+---------------------------------------+
-    | Field name     | Data type | Comments                              |
-    +----------------+-----------+---------------------------------------+
-    | path           | string    | Path of file                          |
-    |                |           |                                       |
-    +----------------+-----------+---------------------------------------+
-    | offset         | uint32    | Byte offset within file               |
-    +----------------+-----------+---------------------------------------+
-    | piece_idx      | uint32    | Piece index                           |
-    +----------------+-----------+---------------------------------------+
-
-When receiving this message we: 
-
-    - update the "piece_idx_start" and/or "pieces" field of the corresponding entry within the File Log.
-    - Fail if pieces are not contiguous
-
-unmap_piece
-~~~~~~~~~~~
-A piece is unmapped. This is done when a file removed, and a piece has a reference count of 0.
-
-    +----------------+-----------+---------------------------------------+
-    | Field name     | Data type | Comments                              |
-    +----------------+-----------+---------------------------------------+
-    | path           | string    | Path of file                          |
-    +----------------+-----------+---------------------------------------+
-    | piece_idx      | uint32    | Piece index                           |
-    +----------------+-----------+---------------------------------------+
-
-When receiving this message the Client:
-
-    - Updates the "piece_id_start" and/or "piece_id_end" field of the corresponding entry within the File Log.
-
-change_piece
-~~~~~~~~~~~~
-This occurs when file contents change.
-
-    +----------------+-----------+---------------------------------------+
-    | Field name     | Data type | Comments                              |
-    +----------------+-----------+---------------------------------------+
-    | piece_idx      | uint32    | Piece index                           |
-    +----------------+-----------+---------------------------------------+
-    | new_hash       | string    | New SHA1 hash of piece                |
-    +----------------+-----------+---------------------------------------+
-    | new_size       | uint32    | New size of piece                     |
-    +----------------+-----------+---------------------------------------+
-
-When receiving this message the Client:
-
-    - Updates the "hash" field of the corresponding entry within the Piece Log with "new_hash".
-    - Updates the "size" field of the entry from the File Log that points to this piece has its "size" 
-    - If "new_hash" is different from "hash" mark piece as "don't have" and send a PWP_DONTHAVE message to one-folder peers
-
-For pieces that haven't changed size the "new_size" value remains the same.
-
-remove_file
-~~~~~~~~~~~
-This occurs when files are removed.
-
-    +----------------+-----------+---------------------------------------+
-    | Field name     | Data type | Comments                              |
-    +----------------+-----------+---------------------------------------+
-    | path           | string    | Path of file                          |
-    +----------------+-----------+---------------------------------------+
-
-When receiving this message the Client:
-    - Updates the corresponding File Log entry's "is_deleted" field to "y".
-
-Deleted files will remain in the file log forever. This is done to ensure that "ghost" copies of deleted files don't reappear unexpectedly.
-
-move_file
-~~~~~~~~~
-This occurs when files are removed.
-
-    +----------------+-----------+---------------------------------------+
-    | Field name     | Data type | Comments                              |
-    +----------------+-----------+---------------------------------------+
-    | path           | string    | Path of file                          |
-    +----------------+-----------+---------------------------------------+
-    | new_path       | string    | New path of file                      |
-    +----------------+-----------+---------------------------------------+
-
-When receiving this message the Client:
-
-    - Updates the corresponding File Log entry's "is_deleted" field to "y".
-
-new_file
-~~~~~~~~
-NOTE: new files are not handled by the action log. The client simply sends the new file within a filelog message.
-
 3. Maintaining log concensus (WIP)
 ==================================
 *Note: This section is under review at the moment*
 
 File and Piece logs are shared using one of the following methods:
+ - IBLT reconcilation & Merkle tree reconciliation
+ - Merkle tree reconcilation
+ - Piece & File log transmission
 
-1. Action log messages
-~~~~~~~~~~~~~~~~~~~~~~
-If a file event occurs and a peer is connected with non-empty File and Piece logs, an Action log message is sent to the peer.
+Note: IBLT reconciliation has a risk of false positives, therefore a 2nd round involving a Merkle tree is required.
 
-2. IBLT (Inverse Bloom Lookup Table)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IBLT (Inverse Bloom Lookup Table)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 When a peer first connects with non-empty File and Piece logs:
 1) Perform a SHA1 hash on each file and pieces' contents
 2) Populate an IBLT with the file and pieces' hashes
@@ -220,16 +107,16 @@ When a peer first connects with non-empty File and Piece logs:
 6) Merge received different items (ie. files/pieces)
 7) Update Merkle tree
 
-3. Merkle tree
-~~~~~~~~~~~~~~
+Merkle tree
+~~~~~~~~~~~
 When a peer first connects and with non-empty File and Piece logs:
 1) Send Merkle tree root node
 2) Compare to own Merkle tree
 3) Request sub trees left breadth first (Merkle tree is ordered by file's name and by piece's index)
 4) Recompute Merkle tree as it is updated
 
-4. Full log
-~~~~~~~~~~~
+Piece & File Log Transmission
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Send the full File and Piece logs to the peer.
 This is only used when the peer is new to the Shared Folder.
 
@@ -263,7 +150,7 @@ When receiving this message, we:
     - if handshake is invalid, drop the connection
 
 *highest_piece*
-This is required within the handshake so that clients are able to construct a merkel hash. For a merkel hash it is necessary that we know how many pieces there could be.
+This is required within the handshake so that clients are able to construct a Merkle hash. For a Merkle hash it is necessary that we know how many pieces there could be.
 
 File log message
 ~~~~~~~~~~~~~~~~
@@ -281,10 +168,11 @@ File log messages have the following message format:
 
 When receiving this message we: 
 
-    - add the file to our database and create the file in our local directory,
-      but only if we don't have a file that has the same path
-    - If a file's mtime is less than ours, we ignore the file and enque the file
-      info from our database to be sent to the peer
+    - if we don't have a file that has the same path, add the file to our
+      database and create the file in our local directory,
+
+    - if a file's mtime is less than ours, we ignore the file and enqueue the
+      file info from our database to be sent to the peer
 
 Piece log message
 ~~~~~~~~~~~~~~~~~
@@ -302,9 +190,11 @@ Piece log messages have the following message format:
 
 When receiving this message, we: 
 
-    - add the piece to our database, if we don't have a piece that has the same index database
+    - if we don't have a piece that has the same index database, add the piece to our database
+
     - update our database with this piece's info. If a pieces's mtime is higher
       than ours. See below paragraph for how the replacement works
+
     - we ignore the piece and enque the piece info from our database to be sent
       to the peer, if a pieces's mtime is less than ours, 
 
@@ -336,7 +226,7 @@ TODO
 
 6. File alteration monitoring
 =============================
-*Note: Compliance within this section is not required for a client to be compatible with OFP. This section is meant to provide guidance to the OFP client implementor.*
+*Note: Compliance within this section is not required for a client to be compatible with OFP. This section is only meant to provide guidance to the OFP implementor.*
 
 Clients need to monitor the following filesystem events:
 
