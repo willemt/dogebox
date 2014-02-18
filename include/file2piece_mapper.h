@@ -69,4 +69,9 @@ void* f2p_get_files(f2p_t* me_);
 
 int f2p_get_file_from_path(f2p_t* me_, const char* path);
 
+/**
+ * This version doesn't assume \0 terminated strings */
+int f2p_get_file_from_path_len(f2p_t* me_,
+        const char* path, unsigned int len);
+
 #endif /* FILE2PIECE_MAPPER_H_ */

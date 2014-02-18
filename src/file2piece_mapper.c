@@ -160,3 +160,12 @@ int f2p_get_file_from_path(f2p_t* me_, const char* path)
 
     return hashmap_get(me->files, path);
 }
+
+#if 0
+int f2p_get_file_from_path_len(f2p_t* me_,
+        const char* path, unsigned int len)
+{
+
+}
+#endif
+

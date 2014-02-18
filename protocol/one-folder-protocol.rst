@@ -9,67 +9,14 @@ Even though OFP is simply just the addition of piece mapping features to the Bit
 Table of contents
 =================
 A client that uses OFP has to solve six key problems. These are elaborated on in the below sections.
-1) File alteration monitoring
-2) Mapping files to Bittorrent pieces
-3) Maintaining file and piece event logs
-4) Maintaining log concensus between nodes
-5) Transmitting Bittorrent pieces
-6) Peer discovery
+1) Mapping files to Bittorrent pieces
+2) Maintaining file and piece event logs
+3) Maintaining log concensus between nodes
+4) Transmitting Bittorrent pieces
+5) Peer discovery
+6) File alteration monitoring
 
-1. File alteration monitoring
-=============================
-*Note: Compliance within this section is not required for a client to be compatible with OFP. This section is meant to provide guidance to the OFP client implementor.*
-
-Clients need to monitor the following filesystem events:
-
-Creation
-~~~~~~~~
-+----------------+----------------------------------------------+
-| Parameter name | Comments                                     |
-+----------------+----------------------------------------------+
-| path           | The path name of the file                    |
-+----------------+----------------------------------------------+
-| is_dir         | Whether or not the file is a                 |
-|                | directory                                    |
-+----------------+----------------------------------------------+
-| size           | Size of the file in bytes                    |
-+----------------+----------------------------------------------+
-| mtime          | When the file was last modified              |
-+----------------+----------------------------------------------+
-
-Removal
-~~~~~~~
-+----------------+----------------------------------+
-| Parameter name | Comments                         |
-+----------------+----------------------------------+
-| path           | The full path of the file        |
-+----------------+----------------------------------+
-
-Rename
-~~~~~~
-+----------------+----------------------------------+
-| Parameter name | Comments                         |
-+----------------+----------------------------------+
-| path           | The full path of the file        |
-+----------------+----------------------------------+
-| new path       | The new path of the file         |
-+----------------+----------------------------------+
-| mtime          | File's last modified time        |
-+----------------+----------------------------------+
-
-Write
-~~~~~
-+----------------+----------------------------------+
-| Parameter name | Comments                         |
-+----------------+----------------------------------+
-| path           | The full path of the file        |
-+----------------+----------------------------------+
-| new size       | Size in bytes of file            |
-+----------------+----------------------------------+
-| mtime          | File's last modified time        |
-+----------------+----------------------------------+
-
-2. Mapping files to Bittorrent pieces 
+1. Mapping files to Bittorrent pieces 
 =====================================
 
  Pieces are referenced by their index, a 32bit unsigned integer.
@@ -78,9 +25,9 @@ There are 2^32 possible pieces within one-folder. This is in-line with the Bitto
 
  Pieces represent data chunks of *up to* 2mb in size.
 
-OFP uses a modified form of the Bittorrent Peer Wire Protocol to allow variable sized pieces. Some files can be held within a single piece, and might not take up all of the piece space. The Piece Log (mentioned in section 3) describes the size of each piece.
+OFP uses a modified form of the Bittorrent Peer Wire Protocol to allow variable sized pieces. Some files can be held within a single piece, and might not take up all of the piece space. The Piece Log (mentioned in section 2) describes the size of each piece.
 
- Files have a one-to-many relationship with pieces. This relationship is specified by a piece index (unsigned 32bit integer) and a number of pieces (unsigned 32bit integer). This is known as a piece range.
+ Files have a one-to-many relationship with pieces. This relationship is specified by a piece index (unsigned 32bit integer) and a number of pieces (unsigned 32bit integer). This pair of integers is known as a piece range.
  
 This means that files must be mapped to a contiguous range of pieces (the ordering is based off the piece index). For example, readme.txt could have a piece start index of 2 with a piece range of 3, ie. readme.txt is made up of pieces 2, 3, 4, 5.
 
@@ -88,7 +35,7 @@ This means that files must be mapped to a contiguous range of pieces (the orderi
 
 The piece range is dependent on the size of the file. For example, you will need at least 5 pieces to represent a 10mb file.
 
-3. Maintaining file and piece event logs
+2. Maintaining file and piece event logs
 ========================================
 Three logs are recorded by OFP:
 
@@ -107,18 +54,23 @@ File Log
     +-----------------+-----------+---------------------------------------+
     | size            | uint32    | Size of file in bytes                 |
     +-----------------+-----------+---------------------------------------+
-    | is_deleted      | string    | "y" when file has been removed        |
+    | is_deleted      | string    | "y" when file has been removed;       |
+    |                 |           | "n" otherwise                         |
     +-----------------+-----------+---------------------------------------+
-    | piece_idx_start | uint32    | The starting piece index of the file  |
+    | piece_idx_start | uint32    | Starting piece index of the file      |
     +-----------------+-----------+---------------------------------------+
     | pieces          | uint32    | Number of pieces used by this file    |
     +-----------------+-----------+---------------------------------------+
     | mtime           | uint32    | Last modified time of file meta data  |
     +-----------------+-----------+---------------------------------------+
+    | utime           | uint32    | The time at which the client detected |
+    |                 |           | the modification                      |
+    +-----------------+-----------+---------------------------------------+
+
+Together, "Piece_idx_start" and "pieces" make up the file's piece range.
 
 Piece Log
 ---------
-
     The piece log is a bencoded list of dictionaries with the following key/values:
     +----------------+-----------+---------------------------------------+
     | Field name     | Data type | Comments                              |
@@ -129,12 +81,13 @@ Piece Log
     +----------------+-----------+---------------------------------------+
     | hash           | string    | SHA1 hashsum of piece contents        |
     +----------------+-----------+---------------------------------------+
-    | mtime          | uint32    | Last modified time of piece meta data |
+    | mtime          | uint32    | Last modified time of piece metadata  |
     +----------------+-----------+---------------------------------------+
 
 Action log
 ----------
-    The action log is a bencoded list of dictionaries. The number of dictionary key/values depends on the "action_type" field. See structure below:
+    The action log is a bencoded list of dictionaries.
+    The number of dictionary key/values depends on the "action_type" field. See structure below:
     +----------------+-----------+---------------------------------------+
     | Field name     | Data type | Comments                              |
     +----------------+-----------+---------------------------------------+
@@ -146,6 +99,8 @@ Action log
     | The fields specific to the action are determined by the value of   |
     | the "action_type" field. The action fields are below.              |
     +--------------------------------------------------------------------+
+
+Each peer's action log is independent of other peer's action logs.
 
 Below is a listing of all the action types:
 
@@ -164,9 +119,9 @@ A piece is mapped to a file.
     | piece_idx      | uint32    | Piece index                           |
     +----------------+-----------+---------------------------------------+
 
-When receiving this message the Client:
+When receiving this message we: 
 
-    - Updates the "piece_id_start" and/or "piece_id_end" field of the corresponding entry within the File Log.
+    - update the "piece_idx_start" and/or "pieces" field of the corresponding entry within the File Log.
     - Fail if pieces are not contiguous
 
 unmap_piece
@@ -242,7 +197,7 @@ new_file
 ~~~~~~~~
 NOTE: new files are not handled by the action log. The client simply sends the new file within a filelog message.
 
-4. Maintaining log concensus (WIP)
+3. Maintaining log concensus (WIP)
 ==================================
 *Note: This section is under review at the moment*
 
@@ -278,9 +233,9 @@ When a peer first connects and with non-empty File and Piece logs:
 Send the full File and Piece logs to the peer.
 This is only used when the peer is new to the Shared Folder.
 
-See section 5 for message format.
+See section 4 for message format.
 
-5. Transmitting Bittorrent pieces
+4. Transmitting Bittorrent pieces
 =================================
 All messages are sent using the Bittorrent protocol with some specific OFP extensions.
 
@@ -288,9 +243,9 @@ These extensions are below:
 
 Handshake message
 ~~~~~~~~~~~~~~~~~
-Handshake messages are sent at the beginning of the connection. The Bittorrent handshake is not used.
-Handshake messages have the following message format:
+Handshake messages are sent at the beginning of the connection.
 
+    Handshake messages have the following message format:
     +----------------+-----------+----------------------------------------------+
     | Field name     | Data type | Bits | Comments                              |
     +----------------+-----------+----------------------------------------------+
@@ -302,10 +257,10 @@ Handshake messages have the following message format:
     |                |           |      | client is aware of                    |
     +----------------+-----------+----------------------------------------------+
 
-When receiving this message the Client:
+When receiving this message, we: 
 
-    - If handshake is valid, reply with handshake
-    - If handshake is invalid, drop connection
+    - if handshake is valid, reply with handshake
+    - if handshake is invalid, drop the connection
 
 *highest_piece*
 This is required within the handshake so that clients are able to construct a merkel hash. For a merkel hash it is necessary that we know how many pieces there could be.
@@ -321,13 +276,13 @@ File log messages have the following message format:
     +----------------+-----------+----------------------------------------------+
     | msgtype        | byte      |    8 | message type, always equals 9         |
     +----------------+-----------+----------------------------------------------+
-    | filelog        | string    |  N/A | Section 2 described bencoded string   |
+    | filelog        | string    |  N/A | Section 1 described bencoded string   |
     +----------------+-----------+----------------------------------------------+
 
-When receiving this message the Client:
+When receiving this message we: 
 
-    - If we don't have a file that has the same path, we add the file to our
-      database, and create the file in our local directory
+    - add the file to our database and create the file in our local directory,
+      but only if we don't have a file that has the same path
     - If a file's mtime is less than ours, we ignore the file and enque the file
       info from our database to be sent to the peer
 
@@ -342,7 +297,7 @@ Piece log messages have the following message format:
     +----------------+-----------+----------------------------------------------+
     | msgtype        | byte      |    8 | message type, always equals 10        |
     +----------------+-----------+----------------------------------------------+
-    | piecelog       | string    |  N/A | Section 2 described bencoded string   |
+    | piecelog       | string    |  N/A | Section 1 described bencoded string   |
     +----------------+-----------+----------------------------------------------+
 
 When receiving this message, we: 
@@ -375,9 +330,63 @@ As time goes on, an Action Log entry message might result in a piece not being a
     | piece id       | uint32    |   32 | The piece index                       |
     +----------------+-----------+----------------------------------------------+
 
-6. Peer discovery
+5. Peer discovery
 =================
 TODO
+
+6. File alteration monitoring
+=============================
+*Note: Compliance within this section is not required for a client to be compatible with OFP. This section is meant to provide guidance to the OFP client implementor.*
+
+Clients need to monitor the following filesystem events:
+
+Creation
+~~~~~~~~
++----------------+----------------------------------------------+
+| Parameter name | Comments                                     |
++----------------+----------------------------------------------+
+| path           | The path name of the file                    |
++----------------+----------------------------------------------+
+| is_dir         | Whether or not the file is a                 |
+|                | directory                                    |
++----------------+----------------------------------------------+
+| size           | Size of the file in bytes                    |
++----------------+----------------------------------------------+
+| mtime          | When the file was last modified              |
++----------------+----------------------------------------------+
+
+Removal
+~~~~~~~
++----------------+----------------------------------+
+| Parameter name | Comments                         |
++----------------+----------------------------------+
+| path           | The full path of the file        |
++----------------+----------------------------------+
+
+Rename
+~~~~~~
++----------------+----------------------------------+
+| Parameter name | Comments                         |
++----------------+----------------------------------+
+| path           | The full path of the file        |
++----------------+----------------------------------+
+| new path       | The new path of the file         |
++----------------+----------------------------------+
+| mtime          | File's last modified time        |
++----------------+----------------------------------+
+
+Write
+~~~~~
++----------------+----------------------------------+
+| Parameter name | Comments                         |
++----------------+----------------------------------+
+| path           | The full path of the file        |
++----------------+----------------------------------+
+| new size       | Size in bytes of file            |
++----------------+----------------------------------+
+| mtime          | File's last modified time        |
++----------------+----------------------------------+
+
 
 Folder configurations 
 =====================
