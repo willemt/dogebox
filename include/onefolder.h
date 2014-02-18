@@ -2,8 +2,17 @@
 #define PROTOCOL_NAME "onefolder20140110"
 
 enum {
+    /**
+     * A listing of all pieces we have */
     OF_MSGTYPE_PIECELOG = 1,
+
+    /**
+     * A listing of all files we have */
     OF_MSGTYPE_FILELOG = 2,
+
+    /**
+     * Indicate to our peer that we don't have this piece anymore */
+    OF_MSGTYPE_DONTHAVE = 3,
 };
 
 typedef struct {

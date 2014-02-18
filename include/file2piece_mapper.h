@@ -15,8 +15,13 @@ typedef struct {
 
 typedef struct file_s {
     char* path;
+
+    /* size of file in bytes */
     unsigned int size;
+
+    /* last time the file was modified */
     unsigned int mtime;
+
     int is_dir;
     void* udata;
     /* piece index */
@@ -27,25 +32,41 @@ typedef struct file_s {
 
 f2p_t* f2p_new(void* piecedb, unsigned int piece_size);
 
-int f2p_file_added(
+/**
+ * Will add required pieces to piece database
+ * @return file added */
+void* f2p_file_added(
     f2p_t* me_,
     char* name,
     int is_dir,
     unsigned int size,
     unsigned long mtime);
 
-int f2p_file_removed(
+/**
+ * @return file removed */
+void* f2p_file_removed(
     f2p_t* me_,
     char* name);
 
-int f2p_file_changed(
+/**
+ * @return file changed */
+void* f2p_file_changed(
     f2p_t* me_, char* name, int new_size, unsigned long mtime);
 
-int f2p_file_moved(
+/**
+ * @return file changed */
+void* f2p_file_moved(
     f2p_t* me_, char* name, char* new_name, unsigned long mtime);
+
+/**
+ * @return file changed */
+void* e2p_file_remap(
+    f2p_t* me_, char* name, unsigned int piece_idx, unsigned long pieces);
 
 /**
  * @return hashmap of files */
 void* f2p_get_files(f2p_t* me_);
+
+int f2p_get_file_from_path(f2p_t* me_, const char* path);
 
 #endif /* FILE2PIECE_MAPPER_H_ */

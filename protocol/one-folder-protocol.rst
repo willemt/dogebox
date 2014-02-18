@@ -405,6 +405,7 @@ Shared folders are configured with the following options:
 
 TODO
 ====
+- Add utime (ie. updated time) to File Log
 - Undo log
 - Shared secrets
 - DHT peer discovery
