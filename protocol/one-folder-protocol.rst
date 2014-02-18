@@ -10,8 +10,8 @@ Table of contents
 =================
 A client that uses OFP has to solve six key problems. These are elaborated on in the below sections.
 1) Mapping files to Bittorrent pieces
-2) Maintaining file and piece event logs
-3) Maintaining log concensus between nodes
+2) Maintaining file and piece logs
+3) Maintaining log concensus between peers
 4) Transmitting Bittorrent pieces
 5) Peer discovery
 6) File alteration monitoring
@@ -29,7 +29,7 @@ OFP uses a modified form of the Bittorrent Peer Wire Protocol to allow variable 
 
  Files have a one-to-many relationship with pieces. This relationship is specified by a piece index (unsigned 32bit integer) and a number of pieces (unsigned 32bit integer). This pair of integers is known as a piece range.
  
-This means that files must be mapped to a contiguous range of pieces (the ordering is based off the piece index). For example, readme.txt could have a piece start index of 2 with a piece range of 3, ie. readme.txt is made up of pieces 2, 3, 4, 5.
+This means that files must be mapped to a contiguous range of pieces (the ordering is based off the piece index). For example, "readme.txt" could have a piece index of 2 with a piece range length of 4, ie. readme.txt is made up of pieces 2, 3, 4, 5.
 
  Files are assigned a piece mapping by choosing a random piece index that allows a piece range that supports the entire file's size. The file can't have pieces that overlap with any already mapped pieces.
 
@@ -44,7 +44,6 @@ Two logs are recorded by OFP:
 
 File Log
 --------
-
     The file log is a bencoded list of dictionaries with the following key/values:
     +-----------------+-----------+---------------------------------------+
     | Field name      | Data type | Comments                              |
@@ -53,10 +52,7 @@ File Log
     +-----------------+-----------+---------------------------------------+
     | size            | uint32    | Size of file in bytes                 |
     +-----------------+-----------+---------------------------------------+
-    | is_deleted      | string    | "y" when file has been removed;       |
-    |                 |           | "n" otherwise                         |
-    +-----------------+-----------+---------------------------------------+
-    | piece_idx_start | uint32    | Starting piece index of the file      |
+    | piece_idx       | uint32    | Starting piece index of the file      |
     +-----------------+-----------+---------------------------------------+
     | pieces          | uint32    | Number of pieces used by this file    |
     +-----------------+-----------+---------------------------------------+
@@ -65,8 +61,11 @@ File Log
     | utime           | uint32    | The time at which the client detected |
     |                 |           | the modification                      |
     +-----------------+-----------+---------------------------------------+
+    | is_deleted      | string    | "y" when file has been removed;       |
+    |                 |           | "n" otherwise                         |
+    +-----------------+-----------+---------------------------------------+
 
-Together, "Piece_idx_start" and "pieces" make up the file's piece range.
+Together, "piece_idx" and "pieces" make up the file's piece range.
 
 Piece Log
 ---------
@@ -146,7 +145,7 @@ Handshake messages are sent at the beginning of the connection.
 
 When receiving this message, we: 
 
-    - if handshake is valid, reply with handshake
+    - if handshake is valid, reply with handshake, and send our piece and file log
     - if handshake is invalid, drop the connection
 
 *highest_piece*
@@ -171,8 +170,24 @@ When receiving this message we:
     - if we don't have a file that has the same path, add the file to our
       database and create the file in our local directory,
 
+    - if we don't have pieces that match the piece range, we add the piece range
+      to our database
+
+    - if we don't have pieces that match the piece range, and the piece range 
+      conflicts with one of our piece ranges, we re-map our conflicting piece(s)
+      piece ranges and enque the re-mapped file to be sent in the file log
+      subset mentioned below. We then add the new piece range to our database
+
     - if a file's mtime is less than ours, we ignore the file and enqueue the
-      file info from our database to be sent to the peer
+      file info from our database to be sent to the peer. After we've processed
+      the whole file log we send a subset of our piece log.
+
+*File Log subset*
+This subset consists of files:
+
+    - belonging to us which have a higher mtime than the peer
+
+    - that the peer doesn't have
 
 Piece log message
 ~~~~~~~~~~~~~~~~~
@@ -190,7 +205,10 @@ Piece log messages have the following message format:
 
 When receiving this message, we: 
 
-    - if we don't have a piece that has the same index database, add the piece to our database
+    - if we don't have a piece that has the same index in our database, we 
+      disconnect *(This is because the file log creates the pieces we require.
+      If the Piece Log indicates wer need to add pieces, this is most likely a 
+      processing error)*
 
     - update our database with this piece's info. If a pieces's mtime is higher
       than ours. See below paragraph for how the replacement works
@@ -203,6 +221,13 @@ If we replace our piece info with a newer piece info, we:
     - send a DONTHAVE message to all our peers, only if we had a complete
       version of the piece before the update. The updated piece index is the
       argument for the message
+
+*Piece Log subset*
+This subset consists of pieces:
+
+    - belonging to us which have a higher mtime than the peer
+
+    - that the peer doesn't have
 
 Don't have Message
 ~~~~~~~~~~~~~~~~~~
@@ -276,19 +301,6 @@ Write
 +----------------+----------------------------------+
 | mtime          | File's last modified time        |
 +----------------+----------------------------------+
-
-
-Folder configurations 
-=====================
-Shared folders are configured with the following options:
-
-+----------------+----------------------------------------------+---------+
-| Parameter name | Comments                                     | Default |
-+----------------+----------------------------------------------+---------+
-| piece_size     | This is the default size of pieces. If a     | 2mb     |
-|                | If a file can be contained within a single   |         |
-|                | piece that piece size will be used.          |         |
-+----------------+----------------------------------------------+---------+
 
 TODO
 ====

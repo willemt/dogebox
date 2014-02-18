@@ -300,7 +300,7 @@ static void __process_file_dict(sys_t* me, bencode_t* dict)
     char path[1000];
     int pathlen = 0;
     int fsize = 0;
-    int piece_idx_start = 0;
+    int piece_idx = 0;
     int pieces = 0;
     unsigned int mtime = 0;
 
@@ -324,9 +324,9 @@ static void __process_file_dict(sys_t* me, bencode_t* dict)
         {
             //bencode_string_value(&benk, &fsize);
         }
-        else if (!strncmp(key, "piece_idx_start", klen))
+        else if (!strncmp(key, "piece_idx", klen))
         {
-            bencode_int_value(&benk, &piece_idx_start);
+            bencode_int_value(&benk, &piece_idx);
         }
         else if (!strncmp(key, "pieces", klen))
         {
@@ -353,7 +353,7 @@ static void __process_file_dict(sys_t* me, bencode_t* dict)
         }
         else
         {
-            f2p_file_remap(me->pm, name, piece_idx_start, pieces);
+            f2p_file_remap(me->pm, name, piece_idx, pieces);
         }
     }
 }
@@ -466,7 +466,7 @@ static void handshake_success(
                 "4:path%d:%s"
                 "4:sizei%de"
                 "10:is_deleted1:n"
-                "15:piece_idx_starti%de"
+                "15:piece_idxi%de"
                 "6:piecesi%de"
                 "5:mtimei%de"
                 "e"
