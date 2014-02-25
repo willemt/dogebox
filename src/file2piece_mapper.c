@@ -71,7 +71,7 @@ void* f2p_file_added(
 
     file_t* f;
         
-    f = f2p_get_file_from_path(me);
+    f = f2p_get_file_from_path(me_, name);
 
     assert(!f);
 
@@ -154,7 +154,7 @@ void* f2p_get_files(f2p_t* me_)
     return me->files;
 }
 
-int f2p_get_file_from_path(f2p_t* me_, const char* path)
+void* f2p_get_file_from_path(f2p_t* me_, const char* path)
 {
     f2p_private_t* me = (void*)me_;
 

@@ -14,6 +14,7 @@ contribs = [
 ('CPSeudoLRU','http://github.com/willemt/CPseudoLRU'),
 ('CMeanQueue','http://github.com/willemt/CMeanQueue'),
 ('CBipBuffer', 'http://github.com/willemt/CBipBuffer'),
+('YABTorrent', 'http://github.com/willemt/YABTorrent'),
 ('CConfig-re', 'http://github.com/willemt/CConfig-re'),
 ('CEventTimer', 'http://github.com/willemt/CEventTimer'),
 ('CTrackerClient', 'http://github.com/willemt/CTrackerClient'),
@@ -268,19 +269,18 @@ def build(bld):
 
     bld.program(
         source=[
-            "src/onefolder.c",
+            "src/main.c",
             "src/file2piece_mapper.c",
-            "src/onefolder_connection.c",
-            "src/onefolder_msghandler.c",
-            "src/onefolder_handshaker.c",
-            #"onefolder_handshaker.c",
+            "src/connection.c",
+            "src/msghandler.c",
+            "src/handshaker.c",
             cp+"CBitfield/bitfield.c",
             cp+"fff/fff.c",
             cp+"CBipBuffer/bipbuffer.c",
             cp+"YABTorrent/src/mt19937ar.c",
             cp+"YABTorrent/src/networkfuncs_libuv.c",
             ],
-        target='onefolder',
+        target='dogebox',
         cflags=[
             '-g',
             '-Werror',

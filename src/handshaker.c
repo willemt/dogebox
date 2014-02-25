@@ -16,7 +16,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "onefolder_handshaker.h"
+#include "dogebox_handshaker.h"
 
 #include "bitfield.h"
 #include "bitstream.h"

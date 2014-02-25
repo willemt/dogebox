@@ -46,10 +46,10 @@ Filepos_getpiece file, pos
 /* for f2p_t */
 #include "file2piece_mapper.h"
 
-#include "onefolder_handshaker.h"
+#include "dogebox_handshaker.h"
 
 /* for of_msghandler_new() */
-#include "onefolder_msghandler.h"
+#include "dogebox_msghandler.h"
 
 /* for piggy backing on PWP_ msg types */
 #include "bitfield.h"
@@ -290,154 +290,14 @@ static void __on_tc_add_peer(void* callee,
     {
 
     }
-    peer = bt_dm_add_peer(me->bc, peer_id, peer_id_len, ip, ip_len, port, peer_nethandle);
+    peer = bt_dm_add_peer(me->bc,
+        peer_id, peer_id_len,
+        ip, ip_len, port,
+        peer_nethandle);
+
+        
     uv_mutex_unlock(&me->mutex);
 }
-
-static void __process_file_dict(sys_t* me, bencode_t* dict)
-{
-    // TODO: switch away from path
-    char path[1000];
-    int pathlen = 0;
-    int fsize = 0;
-    int piece_idx = 0;
-    int pieces = 0;
-    unsigned int mtime = 0;
-
-    while (bencode_dict_has_next(&dict))
-    {
-        bencode_t benk;
-        const char *key;
-        int klen;
-
-        bencode_dict_get_next(&dict, &benk, &key, &klen);
-
-        if (!strncmp(key, "path", klen))
-        {
-            bencode_string_value(&benk, &path, &pathlen);
-        }
-        else if (!strncmp(key, "size", klen))
-        {
-            bencode_int_value(&benk, &fsize);
-        }
-        else if (!strncmp(key, "is_deleted", klen))
-        {
-            //bencode_string_value(&benk, &fsize);
-        }
-        else if (!strncmp(key, "piece_idx", klen))
-        {
-            bencode_int_value(&benk, &piece_idx);
-        }
-        else if (!strncmp(key, "pieces", klen))
-        {
-            bencode_int_value(&benk, &pieces);
-        }
-        else if (!strncmp(key, "mtime", klen))
-        {
-            bencode_int_value(&benk, &mtime);
-        }
-    }
-
-    file_t* f = f2p_get_file_from_path(me->pm);
-
-    if (!f)
-    {
-        /* files from file logs are files by default */
-        f2p_file_added(me->pm, path, 0, size, mtime);
-    }
-    else if (f->mtime < mtime)
-    {
-        if (f->size != size)
-        {
-            f2p_file_changed(me->pm, name, size, mtime);
-        }
-        else
-        {
-            f2p_file_remap(me->pm, name, piece_idx, pieces);
-        }
-    }
-}
-
-void of_conn_filelog(void* pc, const unsigned char* buf, unsigned int len)
-{
-    bencode_t ben;
-
-    printf("Received filelog: '%.*s'\n", len, buf);
-
-    bencode_init(&ben, buf, len);
-    if (!bencode_is_list(&ben))
-    {
-        printf("bad file log, expected list\n");
-        return;
-    }
-
-    while (bencode_list_has_next(list))
-    {
-        bencode_t dict;
-
-        bencode_list_get_next(list, &dict);
-        __process_file_dict(me, &dict);
-    }
-}
-
-void of_conn_piecelog(void* pc, const unsigned char* buf, unsigned int len)
-{
-    bencode_t ben;
-
-    printf("Received piecelog: '%.*s'\n", len, buf);
-
-    bencode_init(&ben, buf, len);
-    if (!bencode_is_list(&ben))
-    {
-        printf("bad file log, expected list\n");
-        return;
-    }
-
-    while (bencode_list_has_next(list))
-    {
-        bencode_t dict;
-
-        bencode_list_get_next(list, &dict);
-
-        // TODO: switch away from path
-        int piece_idx = 0;
-        int piece_size = 0;
-        unsigned int mtime = 0;
-        unsigned char hash[20];
-        int hash_len = 0;
-
-        while (bencode_dict_has_next(&dict))
-        {
-            bencode_t benk;
-            const char *key;
-            int klen;
-
-            bencode_dict_get_next(&dict, &benk, &key, &klen);
-
-            if (!strncmp(key, "idx", klen))
-            {
-                bencode_int_value(&benk, &piece_idx);
-            }
-            else if (!strncmp(key, "size", klen))
-            {
-                bencode_int_value(&benk, &piece_size);
-            }
-            else if (!strncmp(key, "hash", klen))
-            {
-                bencode_string_value(&benk, &hash, &hash_len);
-            }
-            else if (!strncmp(key, "mtime", klen))
-            {
-                bencode_int_value(&benk, &mtime);
-            }
-        }
-
-        void* p = bt_piecedb_get(me->db, piece_idx);
-
-        assert(p);
-    }
-}
-
 
 /**
  * @param pc Peer connection
@@ -471,7 +331,8 @@ static void handshake_success(
                 "5:mtimei%de"
                 "e"
                 "e",
-                f->path, f->size, f->piece_start, f->npieces, f->mtime);
+                strlen(f->path), f->path,
+                f->size, f->piece_start, f->npieces, f->mtime);
 
         bitstream_write_uint32(&ptr, fe(1 + strlen(bencode)));
         bitstream_write_ubyte(&ptr, PWP_MSGTYPE_CANCEL + OF_MSGTYPE_FILELOG);

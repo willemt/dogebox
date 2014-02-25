@@ -8,9 +8,9 @@
 #include <stdint.h>
 
 #include "bitfield.h"
-#include "onefolder.h"
-#include "onefolder_connection.h"
-#include "onefolder_msghandler.h"
+#include "dogebox.h"
+#include "dogebox_connection.h"
+#include "dogebox_msghandler.h"
 
 typedef struct {
     void* udata;
@@ -80,4 +80,150 @@ void of_conn_piecelog(of_conn_t* pco, char* filelog, int len)
     memcpy(&pc->fulllog, m, sizeof(msg_fulllog_t));
 }
 #endif
+
+static void __process_file_dict(sys_t* me, bencode_t* d)
+{
+    // TODO: switch away from path
+    char path[1000];
+    const char *ppath = path;
+    int pathlen = 0;
+    long int fsize = 0;
+    long int piece_idx = 0;
+    long int pieces = 0;
+    long int mtime = 0;
+
+    while (bencode_dict_has_next(d))
+    {
+        bencode_t benk;
+        const char *key;
+        int klen;
+
+        bencode_dict_get_next(d, &benk, &key, &klen);
+
+        if (!strncmp(key, "path", klen))
+        {
+            bencode_string_value(&benk, &ppath, &pathlen);
+        }
+        else if (!strncmp(key, "size", klen))
+        {
+            bencode_int_value(&benk, &fsize);
+        }
+        else if (!strncmp(key, "is_deleted", klen))
+        {
+            //bencode_string_value(&benk, &fsize);
+        }
+        else if (!strncmp(key, "piece_idx", klen))
+        {
+            bencode_int_value(&benk, &piece_idx);
+        }
+        else if (!strncmp(key, "pieces", klen))
+        {
+            bencode_int_value(&benk, &pieces);
+        }
+        else if (!strncmp(key, "mtime", klen))
+        {
+            bencode_int_value(&benk, &mtime);
+        }
+    }
+
+    file_t* f = f2p_get_file_from_path(me->pm, path);
+
+    if (!f)
+    {
+        /* files from file logs are files by default */
+        f2p_file_added(me->pm, path, 0, fsize, mtime);
+    }
+    else if (f->mtime < mtime)
+    {
+        if (f->size != fsize)
+        {
+            f2p_file_changed(me->pm, path, fsize, mtime);
+        }
+        else
+        {
+            f2p_file_remap(me->pm, path, piece_idx, pieces);
+        }
+    }
+}
+
+void of_conn_filelog(void* pc, const unsigned char* buf, unsigned int len)
+{
+    bencode_t ben;
+
+    printf("Received filelog: '%.*s'\n", len, buf);
+
+    bencode_init(&ben, buf, len);
+    if (!bencode_is_list(&ben))
+    {
+        printf("bad file log, expected list\n");
+        return;
+    }
+
+    while (bencode_list_has_next(&ben))
+    {
+        bencode_t dict;
+
+        bencode_list_get_next(&ben, &dict);
+        __process_file_dict(me, &dict);
+    }
+}
+
+void of_conn_piecelog(void* pc, const unsigned char* buf, unsigned int len)
+{
+    bencode_t ben;
+
+    printf("Received piecelog: '%.*s'\n", len, buf);
+
+    bencode_init(&ben, buf, len);
+    if (!bencode_is_list(&ben))
+    {
+        printf("bad file log, expected list\n");
+        return;
+    }
+
+    while (bencode_list_has_next(list))
+    {
+        bencode_t dict;
+
+        bencode_list_get_next(list, &dict);
+
+        // TODO: switch away from path
+        int piece_idx = 0;
+        int piece_size = 0;
+        unsigned int mtime = 0;
+        unsigned char hash[20];
+        int hash_len = 0;
+
+        while (bencode_dict_has_next(&dict))
+        {
+            bencode_t benk;
+            const char *key;
+            int klen;
+
+            bencode_dict_get_next(&dict, &benk, &key, &klen);
+
+            if (!strncmp(key, "idx", klen))
+            {
+                bencode_int_value(&benk, &piece_idx);
+            }
+            else if (!strncmp(key, "size", klen))
+            {
+                bencode_int_value(&benk, &piece_size);
+            }
+            else if (!strncmp(key, "hash", klen))
+            {
+                bencode_string_value(&benk, &hash, &hash_len);
+            }
+            else if (!strncmp(key, "mtime", klen))
+            {
+                bencode_int_value(&benk, &mtime);
+            }
+        }
+
+        void* p = bt_piecedb_get(me->db, piece_idx);
+
+        assert(p);
+    }
+}
+
 

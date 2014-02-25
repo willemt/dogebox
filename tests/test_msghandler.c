@@ -9,9 +9,9 @@
 
 #include "bitfield.h"
 #include "bitstream.h"
-#include "onefolder.h"
-#include "onefolder_connection.h"
-#include "onefolder_msghandler.h"
+#include "dogebox.h"
+#include "dogebox_connection.h"
+#include "dogebox_msghandler.h"
 
 #if 0
 typedef struct {
