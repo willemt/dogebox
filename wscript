@@ -40,14 +40,22 @@ def configure(conf):
 
     # Get the required contributions via GIT
     for c in contribs:
-        print "Pulling via git %s..." % c[1]
-        #conf.exec_command("mkdir %s" % c[0])
-        #conf.exec_command("git init", cwd=c[0])
-        #conf.exec_command("git pull %s" % c[1], cwd=c[0])
-        if not os.path.exists("../"+c[0]):
+        if os.path.exists("./"+c[0]):
             conf.env.CONTRIB_PATH = './'
-            conf.exec_command("git clone %s %s" % (c[1],c[0],))
-            conf.exec_command("git pull %s" % c[1], cwd=c[0])
+            print "Using git to update %s..." % c[1]
+            try:
+                conf.cmd_and_log("git pull %s" % c[1], cwd=c[0])
+            except Exception as e:
+                print e.stdout +' '+ e.stderr
+                conf.fatal("Couldn't update ./%s from %s using git" % (c[1],c[0]))
+        elif not os.path.exists("../"+c[0]):
+            conf.env.CONTRIB_PATH = './'
+            print "Using git to clone %s..." % c[1]
+            try:
+                conf.cmd_and_log("git clone %s %s" % (c[1],c[0],))
+            except Exception as e:
+                print e.stdout +' '+ e.stderr
+                conf.fatal("Couldn't clone %s using git" % c[0])
         else:
             conf.env.CONTRIB_PATH = '../'
             
