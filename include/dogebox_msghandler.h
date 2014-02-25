@@ -1,3 +1,5 @@
+#ifndef DOGEBOX_MSGHANDLER_H
+#define DOGEBOX_MSGHANDLER_H
 
 /**
  * @return new msg handler */
@@ -17,3 +19,5 @@ void of_msghandler_release(void *pc);
 int of_msghandler_dispatch_from_buffer(void *mh,
         const unsigned char* buf,
         unsigned int len);
+
+#endif /* DOGEBOX_MSGHANDLER_H */

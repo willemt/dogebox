@@ -1,3 +1,5 @@
+#ifndef DOGEBOX_CONNECTION_H
+#define DOGEBOX_CONNECTION_H
 
 typedef void* of_conn_t;
 
@@ -21,3 +23,5 @@ typedef struct {
 of_conn_t *of_conn_new(of_conn_cb_t* cb, void* udata);
 
 void of_conn_filelog(void* pc, const unsigned char* filelog, unsigned int len);
+
+#endif /* DOGEBOX_CONNECTION_H */

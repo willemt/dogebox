@@ -1,5 +1,7 @@
+#ifndef DOGEBOX_HANDSHAKER_H
+#define DOGEBOX_HANDSHAKER_H
 
-#define PROTOCOL_NAME "one-folder protocol"
+//#define PROTOCOL_NAME "one-folder protocol"
 
 typedef struct {
     /* protocol name */
@@ -40,3 +42,5 @@ int of_handshaker_dispatch_from_buffer(void* me_,
  * @return null if handshake was successful */
 of_handshake_t* of_handshaker_get_handshake(void* me_);
 
+
+#endif /* DOGEBOX_HANDSHAKER_H */

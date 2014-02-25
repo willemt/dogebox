@@ -1,4 +1,3 @@
-
 #ifndef FILE2PIECE_MAPPER_H_
 #define FILE2PIECE_MAPPER_H_
 

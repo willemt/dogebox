@@ -1,3 +1,5 @@
+#ifndef DOGEBOX_H
+#define DOGEBOX_H
 
 #define PROTOCOL_NAME "onefolder20140110"
 
@@ -53,3 +55,5 @@ of_handshake_t* of_handshaker_get_handshake(void* me_);
 
 int of_handshaker_dispatch_from_buffer(void* me_,
         const unsigned char** buf, unsigned int* len);
+
+#endif /* DOGEBOX_H */
