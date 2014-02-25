@@ -12,6 +12,21 @@
 #include "dogebox_connection.h"
 #include "dogebox_msghandler.h"
 
+/* for iterating through f2p hashmap */
+#include "linked_list_hashmap.h"
+
+/* for f2p_t */
+#include "file2piece_mapper.h"
+
+/* for filewatcher */
+#include "fff.h"
+
+/* for sys_t */
+#include "dogebox_local.h"
+
+/* for filelog reading */
+#include "bencode.h"
+
 typedef struct {
     void* udata;
 } conn_private_t;

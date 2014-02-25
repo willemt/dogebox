@@ -46,7 +46,12 @@ Filepos_getpiece file, pos
 /* for f2p_t */
 #include "file2piece_mapper.h"
 
+/* for msg_fulllog_t */
+#include "dogebox.h"
+
 #include "dogebox_handshaker.h"
+
+#include "dogebox_connection.h"
 
 /* for of_msghandler_new() */
 #include "dogebox_msghandler.h"
@@ -61,10 +66,10 @@ Filepos_getpiece file, pos
 /* for filewatcher */
 #include "fff.h"
 
-/* for filelog reading */
-#include "bencode.h"
-
 #include "docopt.c"
+
+/* for sys_t */
+#include "dogebox_local.h"
 
 #define PROGRAM_NAME "bt"
 
@@ -72,40 +77,6 @@ enum {
     OF_MSGTYPE_FILELOG = 9,
     OF_MSGTYPE_PIECELOG = 10,
 };
-
-typedef struct {
-    /* bitorrent client */
-    void* bc;
-
-    /* piece db*/
-    void* db;
-
-    /* file dumper */
-    void* fd;
-
-    /* disk cache */
-    void* dc;
-
-    /* piece mapper */
-    f2p_t* pm;
-
-    /* configuration */
-    void* cfg;
-
-    /* tracker client */
-    void* tc;
-
-    /* of message handler */
-    void* mh;
-
-    bt_dm_stats_t stat;
-
-    uv_mutex_t mutex;
-
-    /* filewatcher */
-    filewatcher_t* fw;
-} sys_t;
-
 uv_loop_t *loop;
 
 static void __log(void *udata, void *src, const char *buf, ...)
@@ -295,7 +266,10 @@ static void __on_tc_add_peer(void* callee,
         ip, ip_len, port,
         peer_nethandle);
 
-        
+    of_conn_new(&((of_conn_cb_t) {
+            .conn_pwp_dispatch = NULL
+            }), me);
+
     uv_mutex_unlock(&me->mutex);
 }
 
