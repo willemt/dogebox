@@ -4,6 +4,9 @@
 #include <string.h>
 #include <assert.h>
 
+/* fff needs libuv */
+#include <uv.h>
+
 /* for uint32_t */
 #include <stdint.h>
 
@@ -21,6 +24,12 @@
 /* for filewatcher */
 #include "fff.h"
 
+/* dogebox local needs dm_stats_t */
+#include "bt.h"
+
+/* for piece database */
+#include "bt_piece_db.h"
+
 /* for sys_t */
 #include "dogebox_local.h"
 
@@ -37,7 +46,6 @@ of_conn_t* of_conn_new(of_conn_cb_t* cb, void* udata)
 
     me = calloc(1, sizeof(conn_private_t));
     me->udata = udata;
-
     return (of_conn_t*)me;
 }
 
@@ -96,8 +104,11 @@ void of_conn_piecelog(of_conn_t* pco, char* filelog, int len)
 }
 #endif
 
-static void __process_file_dict(sys_t* me, bencode_t* d)
+static void __process_file_dict(conn_private_t* me, bencode_t* d)
 {
+    /* piece mappper */
+    void* pm;
+
     // TODO: switch away from path
     char path[1000];
     const char *ppath = path;
@@ -106,6 +117,8 @@ static void __process_file_dict(sys_t* me, bencode_t* d)
     long int piece_idx = 0;
     long int pieces = 0;
     long int mtime = 0;
+
+    pm = ((sys_t*)me->udata)->pm;
 
     while (bencode_dict_has_next(d))
     {
@@ -141,28 +154,29 @@ static void __process_file_dict(sys_t* me, bencode_t* d)
         }
     }
 
-    file_t* f = f2p_get_file_from_path(me->pm, path);
+    file_t* f = f2p_get_file_from_path(pm, path);
 
     if (!f)
     {
         /* files from file logs are files by default */
-        f2p_file_added(me->pm, path, 0, fsize, mtime);
+        f2p_file_added(pm, path, 0, fsize, mtime);
     }
     else if (f->mtime < mtime)
     {
         if (f->size != fsize)
         {
-            f2p_file_changed(me->pm, path, fsize, mtime);
+            f2p_file_changed(pm, path, fsize, mtime);
         }
         else
         {
-            f2p_file_remap(me->pm, path, piece_idx, pieces);
+            f2p_file_remap(pm, path, piece_idx, pieces);
         }
     }
 }
 
 void of_conn_filelog(void* pc, const unsigned char* buf, unsigned int len)
 {
+    conn_private_t* me = pc;      
     bencode_t ben;
 
     printf("Received filelog: '%.*s'\n", len, buf);
@@ -185,7 +199,11 @@ void of_conn_filelog(void* pc, const unsigned char* buf, unsigned int len)
 
 void of_conn_piecelog(void* pc, const unsigned char* buf, unsigned int len)
 {
+    conn_private_t* me = pc;      
     bencode_t ben;
+
+    /* piece database */
+    void* db = ((sys_t*)me->udata)->pm;
 
     printf("Received piecelog: '%.*s'\n", len, buf);
 
@@ -196,16 +214,16 @@ void of_conn_piecelog(void* pc, const unsigned char* buf, unsigned int len)
         return;
     }
 
-    while (bencode_list_has_next(list))
+    while (bencode_list_has_next(&ben))
     {
         bencode_t dict;
 
-        bencode_list_get_next(list, &dict);
+        bencode_list_get_next(&ben, &dict);
 
         // TODO: switch away from path
-        int piece_idx = 0;
-        int piece_size = 0;
-        unsigned int mtime = 0;
+        long int piece_idx = 0;
+        long int piece_size = 0;
+        long int mtime = 0;
         unsigned char hash[20];
         int hash_len = 0;
 
@@ -227,7 +245,7 @@ void of_conn_piecelog(void* pc, const unsigned char* buf, unsigned int len)
             }
             else if (!strncmp(key, "hash", klen))
             {
-                bencode_string_value(&benk, &hash, &hash_len);
+                bencode_string_value(&benk, (const char**)&hash, &hash_len);
             }
             else if (!strncmp(key, "mtime", klen))
             {
@@ -235,7 +253,7 @@ void of_conn_piecelog(void* pc, const unsigned char* buf, unsigned int len)
             }
         }
 
-        void* p = bt_piecedb_get(me->db, piece_idx);
+        void* p = bt_piecedb_get(db, (int)piece_idx);
 
         assert(p);
     }

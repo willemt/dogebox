@@ -16,6 +16,7 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "dogebox.h"
 #include "dogebox_handshaker.h"
 
 #include "bitfield.h"
@@ -157,7 +158,7 @@ int of_handshaker_dispatch_from_buffer(void* me_,
                     return -1;
                 }
 
-                me->cur = me->curr_value = hs->reserved = malloc(8);
+                //me->cur = me->curr_value = hs->reserved = malloc(8);
                 return 1;
             }
         }

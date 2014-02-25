@@ -8,14 +8,6 @@
  * @author  Willem Thiart himself@willemthiart.com
  */
 
-/*
-New_file file, size hint
-Enlarge_file file size
-reduce_size
-Delete_file
-Filepos_getpiece file, pos
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
@@ -73,10 +65,13 @@ Filepos_getpiece file, pos
 
 #define PROGRAM_NAME "bt"
 
+#if 0
 enum {
     OF_MSGTYPE_FILELOG = 9,
     OF_MSGTYPE_PIECELOG = 10,
 };
+#endif
+
 uv_loop_t *loop;
 
 static void __log(void *udata, void *src, const char *buf, ...)

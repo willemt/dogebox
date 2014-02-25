@@ -79,7 +79,7 @@ void* f2p_file_added(
     f->is_dir = is_dir;
     f->size = size;
     f->mtime = mtime;
-    hashmap_add(me->files, f->path, f);
+    hashmap_put(me->files, f->path, f);
 
     npieces = __pieces_required(size, me->piece_size);
     idx = bt_piecedb_add(me->piecedb, npieces);

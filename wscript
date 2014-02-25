@@ -166,14 +166,14 @@ def build(bld):
     # Copy libuv.a to build/
     bld(rule='cp ../libuv/.libs/libuv.a .', always=True)#, target="libuv.a")
 
+    libs = []
+
     if sys.platform == 'win32':
         platform = '-DWIN32'
     elif sys.platform == 'linux2':
         platform = '-DLINUX'
     else:
         platform = ''
-
-    libs = []
 
     bld.shlib(
         source= [
@@ -266,6 +266,8 @@ def build(bld):
         libs += ['dl']
         libs += ['rt']
         libs += ['pthread']
+        # for log() and pow()
+        libs += ['m']
 
     bld.program(
         source=[

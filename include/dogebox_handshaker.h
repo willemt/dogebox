@@ -7,9 +7,6 @@ typedef struct {
     /* protocol name */
     int pn_len;
     unsigned char* pn;
-    unsigned char* reserved;
-    unsigned char* infohash;
-    unsigned char* peerid;
 } of_handshake_t;
 
 /**

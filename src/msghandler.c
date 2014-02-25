@@ -19,7 +19,7 @@
 #include <stdint.h>
 
 #include "bitfield.h"
-#include "onefolder.h"
+#include "dogebox.h"
 
 /* for msg_have_t and friends */
 #include "pwp_connection.h"
@@ -30,9 +30,9 @@
 #include "pwp_msghandler_private.h"
 
 /* for calling of_conn_ functions */
-#include "onefolder_connection.h"
+#include "dogebox_connection.h"
 
-#include "onefolder_msghandler.h"
+#include "dogebox_msghandler.h"
 
 #undef min
 #define min(a,b) ((a) < (b) ? (a) : (b))

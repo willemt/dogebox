@@ -5,22 +5,23 @@
 
 enum {
     /**
-     * A listing of all pieces we have */
-    OF_MSGTYPE_PIECELOG = 1,
-
-    /**
      * A listing of all files we have */
-    OF_MSGTYPE_FILELOG = 2,
+    OF_MSGTYPE_FILELOG = 9,
+
+    /**
+     * A listing of all pieces we have */
+    OF_MSGTYPE_PIECELOG = 10,
 
     /**
      * Indicate to our peer that we don't have this piece anymore */
-    OF_MSGTYPE_DONTHAVE = 3,
+    OF_MSGTYPE_DONTHAVE = 11,
 
     /**
      * Indicate to our peer that we don't have this piece anymore */
-    OF_MSGTYPE_ACTIONLOG = 4,
+    OF_MSGTYPE_ACTIONLOG = 12,
 };
 
+#if 0
 typedef struct {
     /* protocol name */
     int pn_len;
@@ -29,6 +30,7 @@ typedef struct {
     //unsigned char* infohash;
     //unsigned char* peerid;
 } of_handshake_t;
+#endif
 
 typedef struct {
     int filelog_len;
@@ -42,6 +44,7 @@ typedef struct {
     unsigned char* payload;
 } msg_pwp_t;
 
+#if 0
 int of_handshaker_send_handshake(
         void* callee,
         void* udata,
@@ -51,9 +54,8 @@ void* of_handshaker_new(unsigned char* expected_info_hash, unsigned char* mypeer
 
 void of_handshaker_release(void* hs);
 
-of_handshake_t* of_handshaker_get_handshake(void* me_);
-
 int of_handshaker_dispatch_from_buffer(void* me_,
         const unsigned char** buf, unsigned int* len);
+#endif
 
 #endif /* DOGEBOX_H */
