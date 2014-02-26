@@ -330,7 +330,7 @@ int main(int argc, char **argv)
             open("dump_log", O_CREAT | O_TRUNC | O_RDWR, 0666), __log);
 #endif
 
-    config_set_va(me.cfg, "npieces", "%d", 1 << 31),
+    config_set_va(me.cfg, "npieces", "%u", 1 << 31),
     config_set_va(me.cfg, "piece_length", "%d", 1 << 21);
     config_set(me.cfg, "my_peerid", bt_generate_peer_id());
     assert(config_get(me.cfg, "my_peerid"));
@@ -428,6 +428,8 @@ int main(int argc, char **argv)
 
     config_set_va(me.cfg, "pwp_listen_port", "%d", listen_port);
     printf("Listening on port: %d\n", listen_port);
+
+    config_print(me.cfg);
 
     /* create periodic timer */
     uv_timer_t *periodic_req;
