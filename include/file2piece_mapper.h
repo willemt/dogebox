@@ -70,4 +70,8 @@ void* f2p_get_file_from_path(f2p_t* me_, const char* path);
 int f2p_get_file_from_path_len(f2p_t* me_,
         const char* path, unsigned int len);
 
+/**
+ * @return number of files */
+int f2p_get_nfiles(f2p_t* me_);
+
 #endif /* FILE2PIECE_MAPPER_H_ */

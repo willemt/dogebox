@@ -151,7 +151,6 @@ int f2p_file_remap(
 void* f2p_get_files(f2p_t* me_)
 {
     f2p_private_t* me = (void*)me_;
-
     return me->files;
 }
 
@@ -160,6 +159,12 @@ void* f2p_get_file_from_path(f2p_t* me_, const char* path)
     f2p_private_t* me = (void*)me_;
 
     return hashmap_get(me->files, path);
+}
+
+int f2p_get_nfiles(f2p_t* me_)
+{
+    f2p_private_t* me = (void*)me_;
+    return hashmap_count(me->files);
 }
 
 #if 0
