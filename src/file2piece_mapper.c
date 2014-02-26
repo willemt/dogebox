@@ -75,6 +75,7 @@ void* f2p_file_added(
 
     assert(!f);
 
+    f = calloc(1, file_t);
     f->path = strdup(name);
     f->is_dir = is_dir;
     f->size = size;
