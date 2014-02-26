@@ -42,9 +42,7 @@ void* f2p_file_added(
 
 /**
  * @return file removed */
-void* f2p_file_removed(
-    f2p_t* me_,
-    char* name);
+void* f2p_file_removed(f2p_t* me_, char* name);
 
 /**
  * @return file changed */

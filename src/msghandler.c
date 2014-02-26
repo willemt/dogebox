@@ -298,6 +298,7 @@ int of_pwp_piecelog(pwp_msghandler_private_t *me, msg_t* m, void* udata,
     return 1;
 }
 
+#if 0
 void* of_msghandler_new(void* pc, void* udata)
 {
     pwp_msghandler_item_t handlers[] = {
@@ -306,4 +307,6 @@ void* of_msghandler_new(void* pc, void* udata)
     };
     return pwp_msghandler_new2(pc, handlers, 2, 0);
 }
+#endif
+
 

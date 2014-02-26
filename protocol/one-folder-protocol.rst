@@ -1,14 +1,14 @@
-one-folder Specification 20140219
-=================================
-The one-folder protocol (OFP) is a variant of the Bittorrent peer wire protocol.
+dogebox Specification 20140219
+==============================
+The dogebox protocol (DBP) is a variant of the Bittorrent peer wire protocol.
 
-OFP has files mapped to Bittorrent pieces. OFP uses the Bittorrent protocol to transfer these pieces between peers. The key difference between the vanilla Bittorrent protocol and OFP, is that OFP provides extended Bittorrent PWP messages which allow the mapping, re-mapping, and un-mapping of pieces and files.
+DBP has files mapped to Bittorrent pieces. DBP uses the Bittorrent protocol to transfer these pieces between peers. The key difference between the vanilla Bittorrent protocol and DBP, is that DBP provides extended Bittorrent PWP messages which allow the mapping, re-mapping, and un-mapping of pieces and files.
 
-Even though OFP is simply just the addition of piece mapping features to the Bittorrent protocol, there are some extra complexities involved. This protocol document describes the OFP protocol, how the piece mapping works, and how complexity is managed.
+Even though DBP is simply just the addition of piece mapping features to the Bittorrent protocol, there are some extra complexities involved. This protocol document describes the DBP protocol, how the piece mapping works, and how complexity is managed.
 
 Table of contents
 =================
-A client that uses OFP has to solve six key problems. These are elaborated on in the below sections.
+A client that uses DBP has to solve six key problems. These are elaborated on in the below sections.
 1) Mapping files to Bittorrent pieces
 2) Maintaining file and piece logs
 3) Maintaining log concensus between peers
@@ -21,11 +21,11 @@ A client that uses OFP has to solve six key problems. These are elaborated on in
 
  Pieces are referenced by their index, a 32bit unsigned integer.
 
-There are 2^32 possible pieces within one-folder. This is in-line with the Bittorrent protocol.
+There are 2^32 possible pieces within dogebox. This is in-line with the Bittorrent protocol.
 
  Pieces represent data chunks of *up to* 2mb in size.
 
-OFP uses a modified form of the Bittorrent Peer Wire Protocol to allow variable sized pieces. Some files can be held within a single piece, and might not take up all of the piece space. The Piece Log (mentioned in section 2) describes the size of each piece.
+DBP uses a modified form of the Bittorrent Peer Wire Protocol to allow variable sized pieces. Some files can be held within a single piece, and might not take up all of the piece space. The Piece Log (mentioned in section 2) describes the size of each piece.
 
  Files have a one-to-many relationship with pieces. This relationship is specified by a piece index (unsigned 32bit integer) and a number of pieces (unsigned 32bit integer). This pair of integers is known as a piece range.
  
@@ -37,7 +37,7 @@ The piece range is dependent on the size of the file. For example, you will need
 
 2. Maintaining file and piece event logs
 ========================================
-Two logs are recorded by OFP:
+Two logs are recorded by DBP:
 
 - File log, a listing of file metadata (eg. mapping between files and pieces)
 - Piece log, a listing of piece metadata (eg. piece content hashes)  
@@ -123,7 +123,7 @@ See section 4 for message format.
 
 4. Transmitting Bittorrent pieces
 =================================
-All messages are sent using the Bittorrent protocol with some specific OFP extensions.
+All messages are sent using the Bittorrent protocol with some specific DBP extensions.
 
 These extensions are below:
 
@@ -234,7 +234,7 @@ Don't have Message
 ~~~~~~~~~~~~~~~~~~
 As time goes on, an Action Log entry message might result in a piece not being available on the node anymore.
 
-    A DONTHAVE message is sent to it's peers when the OFP client understands that it doesn't have the up-to-date version of that piece anymore.
+    A DONTHAVE message is sent to it's peers when the DBP client understands that it doesn't have the up-to-date version of that piece anymore.
 
     +----------------+-----------+----------------------------------------------+
     | Field name     | Data type | Bits | Comments                              |

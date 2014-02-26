@@ -28,9 +28,11 @@
 #include "bt_string.h"
 #include "bt_sha1.h"
 #include "bt_selector_random.h"
+
 #include "config.h"
 #include "networkfuncs.h"
-#include "linked_list_queue.h"
+
+//#include "linked_list_queue.h"
 
 /* for iterating through f2p hashmap */
 #include "linked_list_hashmap.h"
@@ -211,8 +213,11 @@ static void* __new_msghandler(
         void *pc)
 {
     sys_t* me = callee;
+    pwp_msghandler_item_t handlers[] = {
+        {of_pwp_filelog, pc},
+        {of_pwp_piecelog, pc}};
 
-    return of_msghandler_new(pc, callee);
+    return pwp_msghandler_new2(pc, handlers, 2, 100);
 }
 
 static int __pwp_dispatch_from_buffer(
@@ -236,12 +241,12 @@ static void __on_tc_add_peer(void* callee,
         unsigned int port)
 {
     sys_t* me = callee;
-    void* peer;
+    void* p, *p_nethandle;
     void* netdata;
-    void* peer_nethandle;
+    void* conn;
     char ip_string[32];
 
-    peer_nethandle = NULL;
+    p_nethandle = NULL;
     sprintf(ip_string,"%.*s", ip_len, ip);
 
 #if 1 /* debug */
@@ -249,22 +254,19 @@ static void __on_tc_add_peer(void* callee,
 #endif
 
     uv_mutex_lock(&me->mutex);
-    if (0 == peer_connect(me, &netdata, &peer_nethandle, ip_string, port,
+    if (0 == peer_connect(me, &netdata, &p_nethandle, ip_string, port,
                 __dispatch_from_buffer,
                 __on_peer_connect,
                 __on_peer_connect_fail))
     {
 
     }
-    peer = bt_dm_add_peer(me->bc,
-        peer_id, peer_id_len,
-        ip, ip_len, port,
-        peer_nethandle);
 
-    of_conn_new(&((of_conn_cb_t) {
+    conn = of_conn_new(&((of_conn_cb_t) {
             .conn_pwp_dispatch = NULL
             }), me);
-
+    p = bt_dm_add_peer(me->bc, peer_id, peer_id_len, ip, ip_len, port,
+            p_nethandle, conn);
     uv_mutex_unlock(&me->mutex);
 }
 
@@ -322,7 +324,6 @@ int main(int argc, char **argv)
     me.bc = bt_dm_new();
     me.cfg = bt_dm_get_config(me.bc);
     memset(&me.stat, 0, sizeof(bt_dm_stats_t));
-
 
 #if 0
     status = config_read(cfg, "yabtc", "config");
@@ -400,13 +401,11 @@ int main(int argc, char **argv)
                 .file_changed = file_changed, 
                 .file_moved = file_moved
                 }), &me);
-
     }
 
     /* open listening port */
     void* netdata;
     int listen_port = args.port ? atoi(args.port) : 0;
-#if 0
     if (0 == (listen_port = peer_listen(&me, &netdata, listen_port,
                 __dispatch_from_buffer,
                 __on_peer_connect,
@@ -415,7 +414,6 @@ int main(int argc, char **argv)
         printf("ERROR: can't create listening socket");
         exit(0);
     }
-#endif
 
     if (args.connect)
     {

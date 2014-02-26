@@ -36,7 +36,11 @@
 /* for filelog reading */
 #include "bencode.h"
 
+/* for piggy backing on pwp_conn_private_t */
+#include "pwp_connection_private.h"
+
 typedef struct {
+    pwp_conn_private_t *pwp_conn;
     void* udata;
 } conn_private_t;
 
