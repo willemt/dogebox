@@ -105,6 +105,7 @@ def unit_test(bld, src, ccflag=None):
             "./include",
             bld.env.CONTRIB_PATH+"CBitfield",
             bld.env.CONTRIB_PATH+"CSimpleBitstream",
+            bld.env.CONTRIB_PATH+"YABTorrent/include",
         ]
         )
 

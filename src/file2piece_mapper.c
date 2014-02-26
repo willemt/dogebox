@@ -21,21 +21,20 @@ typedef struct {
  * djb2 by Dan Bernstein. */
 static unsigned long __file_hash(const void *obj)
 {
-    const file_t* f = obj;
     const char* str;
     unsigned long hash = 5381;
     int c;
     
-    for (str = f->path; c = *str++;)
+    for (str = obj; c = *str++;)
         hash = ((hash << 5) + hash) + c;
     return hash;
 }
 
 static long __file_compare(const void *obj, const void *other)
 {
-    const file_t* f1 = obj;
-    const file_t* f2 = other;
-    return strcmp(f1->path, f2->path);
+    const char* f1 = obj;
+    const char* f2 = other;
+    return strcmp(f1, f2);
 }
 
 f2p_t* f2p_new(void* piecedb, unsigned int piece_size)
