@@ -15,6 +15,9 @@
 #include "dogebox_connection.h"
 #include "dogebox_msghandler.h"
 
+/* for sys_t */
+#include "linked_list_queue.h"
+
 /* for iterating through f2p hashmap */
 #include "linked_list_hashmap.h"
 
@@ -37,6 +40,8 @@
 #include "bencode.h"
 
 /* for piggy backing on pwp_conn_private_t */
+#include "sparse_counter.h"
+#include "pwp_connection.h"
 #include "pwp_connection_private.h"
 
 typedef struct {
@@ -262,5 +267,4 @@ void of_conn_piecelog(void* pc, const unsigned char* buf, unsigned int len)
         assert(p);
     }
 }
-
 

@@ -301,12 +301,13 @@ def build(bld):
             cp+"CBitfield",
             cp+"CConfig-re",
             cp+"CBipBuffer",
+            cp+"CSparseCounter",
             cp+"YABTorrent/include",
             cp+"CSimpleBitstream",
             cp+"PeerWireProtocol",
             cp+"CLinkedListQueue",
             cp+"CTorrentFileReader",
             cp+"CHashMapViaLinkedList",
-            cp+"CHeaplessBencodeReader"
+            cp+"CHeaplessBencodeReader",
            ])
 

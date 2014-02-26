@@ -20,4 +20,11 @@ int of_msghandler_dispatch_from_buffer(void *mh,
         const unsigned char* buf,
         unsigned int len);
 
+
+int of_pwp_filelog(void *me_, void* m_, void* udata,
+        const unsigned char** buf, unsigned int *len);
+
+int of_pwp_piecelog(void *me_, void* m_, void* udata,
+        const unsigned char** buf, unsigned int *len);
+
 #endif /* DOGEBOX_MSGHANDLER_H */

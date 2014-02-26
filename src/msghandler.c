@@ -276,9 +276,13 @@ int of_msghandler_dispatch_from_buffer(void *mh,
 #endif
 
 
-int of_pwp_filelog(pwp_msghandler_private_t *me, msg_t* m, void* udata,
+//int of_pwp_filelog(pwp_msghandler_private_t *me, msg_t* m, void* udata,
+int of_pwp_filelog(void *me_, void* m_, void* udata,
         const unsigned char** buf, unsigned int *len)
 {
+    pwp_msghandler_private_t *me = me_;
+    msg_t* m = m_;
+
     int size = min(*len, m->len - 1);
 
     of_conn_filelog(me->pc, *buf, size);
@@ -289,9 +293,13 @@ int of_pwp_filelog(pwp_msghandler_private_t *me, msg_t* m, void* udata,
     return 1;
 }
 
-int of_pwp_piecelog(pwp_msghandler_private_t *me, msg_t* m, void* udata,
+//int of_pwp_piecelog(pwp_msghandler_private_t *me, msg_t* m, void* udata,
+int of_pwp_piecelog(void *me_, void* m_, void* udata,
         const unsigned char** buf, unsigned int *len)
 {
+    pwp_msghandler_private_t *me = me_;
+    msg_t* m = m_;
+
 //    pwp_conn_have(me->pc, &m->hve);
     mh_endmsg(me);
 

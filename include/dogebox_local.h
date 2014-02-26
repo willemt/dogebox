@@ -1,3 +1,5 @@
+#ifndef DOGEBOX_LOCAL_H
+#define DOGEBOX_LOCAL_H
 
 typedef struct {
     /* bitorrent client */
@@ -32,4 +34,4 @@ typedef struct {
     filewatcher_t* fw;
 } sys_t;
 
-
+#endif /* DOGEBOX_LOCAL_H */

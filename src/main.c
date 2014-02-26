@@ -134,11 +134,10 @@ static int __on_peer_connect(
     sys_t* me = callee;
 
     printf("peer wants to connect %s:%d\n", ip, port);
-
     uv_mutex_lock(&me->mutex);
+    bt_dm_add_peer(me->bc, "", 0, ip, strlen(ip), port, peer_nethandle, NULL);
     bt_dm_peer_connect(me->bc,peer_nethandle,ip,port);
     uv_mutex_unlock(&me->mutex);
-
     return 1;
 }
 
@@ -208,9 +207,7 @@ int file_moved(void* callee, char* name, char* new_name, unsigned long mtime)
     return 0;
 }
 
-static void* __new_msghandler(
-        void *callee,
-        void *pc)
+static void* __new_msghandler(void *callee, void *pc)
 {
     sys_t* me = callee;
     pwp_msghandler_item_t handlers[] = {
