@@ -330,6 +330,8 @@ int main(int argc, char **argv)
             open("dump_log", O_CREAT | O_TRUNC | O_RDWR, 0666), __log);
 #endif
 
+    config_set_va(me.cfg, "npieces", "%d", 1 << 31),
+    config_set_va(me.cfg, "piece_length", "%d", 1 << 21);
     config_set(me.cfg, "my_peerid", bt_generate_peer_id());
     assert(config_get(me.cfg, "my_peerid"));
 
