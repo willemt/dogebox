@@ -216,19 +216,6 @@ static void* __new_msghandler(void *callee, void *pc)
     return pwp_msghandler_new2(pc, handlers, 2, 100);
 }
 
-static int __pwp_dispatch_from_buffer(
-        void *callee,
-        const unsigned char* buf,
-        unsigned int len)
-{
-    sys_t* me = callee;
-
-    uv_mutex_lock(&me->mutex);
-//    bt_dm_dispatch_from_buffer(me->bc,peer_nethandle,buf,len);
-    uv_mutex_unlock(&me->mutex);
-    return 1;
-}
-
 static void __on_tc_add_peer(void* callee,
         char* peer_id,
         unsigned int peer_id_len,
@@ -282,10 +269,27 @@ static void __handshake_success(
     
     files = f2p_get_files(me->pm);
 
+    printf("success: %d\n", hashmap_count(files));
+
     for (hashmap_iterator(files, &i); hashmap_iterator_has_next(files, &i);)
     {
         unsigned char bencode[1000];
         file_t* f = hashmap_iterator_next(files, &i);
+
+        printf("file size: %d\n", f->size);
+
+        printf( "l"
+                "d"
+                "4:path%d:%s"
+                "4:sizei%de"
+                "10:is_deleted1:n"
+                "15:piece_idxi%de"
+                "6:piecesi%de"
+                "5:mtimei%de"
+                "e"
+                "e",
+                strlen(f->path), f->path,
+                f->size, f->piece_start, f->npieces, f->mtime);
 
         sprintf(bencode,
                 "l"
@@ -375,7 +379,6 @@ int main(int argc, char **argv)
             .handshaker_send_handshake = of_handshaker_send_handshake,
             .handshake_success = __handshake_success,
             .msghandler_new = __new_msghandler,
-            //.msghandler_dispatch_from_buffer = __pwp_dispatch_from_buffer,
             }), &me);
 
     if (argc == optind)

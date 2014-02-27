@@ -91,7 +91,7 @@ of_handshake_t* of_handshaker_get_handshake(void* me_)
         return &me->hs;
     return NULL;
 #endif
-        return &me->hs;
+    return &me->hs;
 }
 
 static unsigned char __readbyte(
