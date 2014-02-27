@@ -45,7 +45,7 @@
 #include "pwp_connection_private.h"
 
 typedef struct {
-    pwp_conn_private_t *pwp_conn;
+    pwp_conn_private_t pwp_conn;
     void* udata;
 } conn_private_t;
 

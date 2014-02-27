@@ -155,14 +155,13 @@ static void __on_peer_connect_fail(
 static void __periodic(uv_timer_t* handle, int status)
 {
     sys_t* me = handle->data;
-    int i;
 
     if (me->bc)
     {
         uv_mutex_lock(&me->mutex);
-        if (me->fw)
-            fff_periodic(me->fw,1000);
-        bt_dm_periodic(me->bc, &me->stat);
+        bt_dm_periodic(me->bc, NULL);//&me->stat);
+//        if (me->fw)
+//            fff_periodic(me->fw, 1000);
         uv_mutex_unlock(&me->mutex);
     }
 
@@ -320,7 +319,6 @@ int main(int argc, char **argv)
     memset(&me,0,sizeof(sys_t));
     me.bc = bt_dm_new();
     me.cfg = bt_dm_get_config(me.bc);
-    memset(&me.stat, 0, sizeof(bt_dm_stats_t));
 
 #if 0
     status = config_read(cfg, "yabtc", "config");
