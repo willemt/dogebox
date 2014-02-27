@@ -159,9 +159,9 @@ static void __periodic(uv_timer_t* handle, int status)
     if (me->bc)
     {
         uv_mutex_lock(&me->mutex);
-        bt_dm_periodic(me->bc, NULL);//&me->stat);
-//        if (me->fw)
-//            fff_periodic(me->fw, 1000);
+        bt_dm_periodic(me->bc, &me->stat);
+        if (me->fw)
+            fff_periodic(me->fw, 1000);
         uv_mutex_unlock(&me->mutex);
     }
 
@@ -269,7 +269,7 @@ static void __on_tc_add_peer(void* callee,
 /**
  * @param pc Peer connection
  * @param pnethandle Peer net handle context */
-static void handshake_success(
+static void __handshake_success(
         void* download_mgr,
         void* udata,
         void* pc,
@@ -373,10 +373,10 @@ int main(int argc, char **argv)
             .handshaker_release = of_handshaker_release,
             .handshaker_dispatch_from_buffer = of_handshaker_dispatch_from_buffer,
             .handshaker_send_handshake = of_handshaker_send_handshake,
-            .handshake_success = handshake_success,
+            .handshake_success = __handshake_success,
             .msghandler_new = __new_msghandler,
             //.msghandler_dispatch_from_buffer = __pwp_dispatch_from_buffer,
-            }), NULL);
+            }), &me);
 
     if (argc == optind)
     {
