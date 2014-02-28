@@ -291,7 +291,7 @@ static void __handshake_success(
     for (hashmap_iterator(files, &i); hashmap_iterator_has_next(files, &i);)
     {
         unsigned char bencode[1000];
-        file_t* f = hashmap_iterator_next(files, &i);
+        file_t* f = hashmap_iterator_next_value(files, &i);
 
         printf("file size: %d\n", f->size);
 
