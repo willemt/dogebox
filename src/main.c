@@ -164,10 +164,10 @@ static void __periodic(uv_timer_t* handle, int status)
         printf("files: %d\n", hashmap_count(files));
 
         for (hashmap_iterator(files, &i);
-             hashmap_iterator_has_next_value(files, &i);)
+             hashmap_iterator_has_next(files, &i);)
         {
             unsigned char bencode[1000];
-            file_t* f = hashmap_iterator_next(files, &i);
+            file_t* f = hashmap_iterator_next_value(files, &i);
             printf("%s %dB\n", f->path, f->size);
         }
     }
