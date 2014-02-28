@@ -156,6 +156,23 @@ static void __periodic(uv_timer_t* handle, int status)
 {
     sys_t* me = handle->data;
 
+    {
+        hashmap_iterator_t i;
+        hashmap_t* files;
+        
+        files = f2p_get_files(me->pm);
+        printf("files: %d\n", hashmap_count(files));
+
+        for (hashmap_iterator(files, &i);
+             hashmap_iterator_has_next_value(files, &i);)
+        {
+            unsigned char bencode[1000];
+            file_t* f = hashmap_iterator_next(files, &i);
+            printf("%s %dB\n", f->path, f->size);
+        }
+    }
+
+
     if (me->bc)
     {
         uv_mutex_lock(&me->mutex);
