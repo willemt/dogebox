@@ -434,9 +434,9 @@ int main(int argc, char **argv)
 
     if (args.connect)
     {
-        char* port;
+        char* port = strstr(args.connect, ":");
 
-        if ((port = strstr(args.connect, ":")))
+        if (port)
         {
             printf("connecting to: %s\n", args.connect);
             __on_tc_add_peer(&me, "", 0,
