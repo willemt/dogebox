@@ -179,6 +179,7 @@ def build(bld):
     bld.shlib(
         source= [
             "src/file2piece_mapper.c",
+            "src/handshaker.c",
             cp+"YABTorrent/src/bt_download_manager.c",
             cp+"YABTorrent/src/bt_peer_manager.c",
             cp+"YABTorrent/src/bt_piece.c",
@@ -259,6 +260,7 @@ def build(bld):
 
     unit_test(bld,'test_msghandler.c')
     unit_test(bld,'test_f2p.c')
+    unit_test(bld,'test_handshaker.c')
 
     libs = ['yabbt','uv']
     if sys.platform == 'win32':
@@ -277,7 +279,6 @@ def build(bld):
             "src/main.c",
             "src/connection.c",
             "src/msghandler.c",
-            "src/handshaker.c",
             cp+"CBitfield/bitfield.c",
             cp+"fff/fff.c",
             cp+"CBipBuffer/bipbuffer.c",

@@ -22,6 +22,10 @@
 #include "bitfield.h"
 #include "bitstream.h"
 
+/* for handshaker error codes */
+#include "bt.h"
+//#include "pwp_handshaker.h"
+
 typedef struct {
     of_handshake_t hs;
     unsigned int bytes_read;
@@ -50,7 +54,6 @@ int of_handshaker_send_handshake(
 
     /* protocol name length */
     bitstream_write_ubyte((unsigned char**)&ptr, strlen(prot_name));
-
     /* protocol name */
     bitstream_write_string((unsigned char**)&ptr, prot_name, strlen(prot_name));
 
@@ -116,13 +119,6 @@ int of_handshaker_dispatch_from_buffer(void* me_,
 
     while (0 < *len)
     {
-
-    /* protcol name length
-     * The unsigned value of the first byte indicates the length of a
-     * character string containing the prot name. In BTP/1.0 this number
-     * is 19. The local peer knows its own prot name and hence also the
-     * length of it. If this length is different than the value of this
-     * first byte, then the connection MUST be dropped. */
         if (me->curr_value == NULL)
         {
             hs->pn_len = __readbyte(&me->bytes_read, buf, len);
@@ -130,18 +126,11 @@ int of_handshaker_dispatch_from_buffer(void* me_,
             if (0 == hs->pn_len)
             {
                 printf("ERROR: invalid length\n");
-                return -1;
+                return BT_HANDSHAKER_DISPATCH_ERROR;
             }
 
             me->cur = me->curr_value = hs->pn = malloc(hs->pn_len);
         }
-    /* protocol name
-    This is a character string which MUST contain the exact name of the 
-    prot in ASCII and have the same length as given in the Name Length
-    field. The prot name is used to identify to the local peer which
-    version of BTP the remote peer uses. If this string is different
-    from the local peers own prot name, then the connection is to be
-    dropped. */
         else if (me->curr_value == hs->pn)
         {
             *me->cur = __readbyte(&me->bytes_read, buf, len);
@@ -155,20 +144,20 @@ int of_handshaker_dispatch_from_buffer(void* me_,
                         hs->pn_len : strlen(PROTOCOL_NAME)))
                 {
                     printf("ERROR: incorrect protocol name\n");
-                    return -1;
+                    return BT_HANDSHAKER_DISPATCH_ERROR;
                 }
 
                 //me->cur = me->curr_value = hs->reserved = malloc(8);
-                return 1;
+                return BT_HANDSHAKER_DISPATCH_SUCCESS;
             }
         }
         else
         {
             printf("ERROR: invalid handshake\n");
-            return -1;
+            return BT_HANDSHAKER_DISPATCH_ERROR;
         }
     }
 
-    return 0;
+    return BT_HANDSHAKER_DISPATCH_REMAINING;
 }
 
