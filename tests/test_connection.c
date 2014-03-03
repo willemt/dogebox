@@ -50,6 +50,6 @@ void Testof_receives_filelog(
             10, /* size */
             1, 1, 1);
 
-    of_conn_filelog(c, msg, len);
+    of_conn_filelog(c, msg, ptr - msg);
 }
 
