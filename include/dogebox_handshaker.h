@@ -13,13 +13,12 @@ typedef struct {
  * Send the handshake
  *
  * @return 0 on failure; 1 otherwise */
-int of_handshaker_send_handshake(
+int of_send_handshake(
         void* callee,
         void* udata,
         int (*send)(void *callee, const void *udata, const void *send_data, const int len),
         char* expected_ih,
         char* my_pi);
-
 
 void* of_handshaker_new(
         unsigned char* expected_info_hash,

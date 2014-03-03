@@ -393,7 +393,7 @@ int main(int argc, char **argv)
             .handshaker_new = of_handshaker_new,
             .handshaker_release = of_handshaker_release,
             .handshaker_dispatch_from_buffer = of_handshaker_dispatch_from_buffer,
-            .handshaker_send_handshake = of_handshaker_send_handshake,
+            .send_handshake = of_send_handshake,
             .handshake_success = __handshake_success,
             .msghandler_new = __new_msghandler,
             }), &me);

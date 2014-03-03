@@ -34,7 +34,7 @@ typedef struct {
     unsigned char* curr_value;
 } of_handshaker_t;
 
-int of_handshaker_send_handshake(
+int of_send_handshake(
         void* callee,
         void* udata,
         int (*send)(void *callee,
@@ -46,9 +46,6 @@ int of_handshaker_send_handshake(
 {
     char buf[1024], *prot_name = PROTOCOL_NAME, *ptr;
     int size, ii;
-
-    assert(NULL != expected_ih);
-    assert(NULL != my_pi);
 
     ptr = buf;
 
