@@ -323,7 +323,7 @@ static void __handshake_success(
                 f->size, f->piece_start, f->npieces, f->mtime);
 
         bitstream_write_uint32(&ptr, fe(1 + strlen(bencode)));
-        bitstream_write_ubyte(&ptr, PWP_MSGTYPE_CANCEL + OF_MSGTYPE_FILELOG);
+        bitstream_write_ubyte(&ptr, OF_MSGTYPE_FILELOG);
         bitstream_write_string(&ptr, bencode);
         peer_send(me, NULL, pnethandle, data, strlen(ptr));
     }
