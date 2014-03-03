@@ -125,7 +125,7 @@ static int __dispatch_from_buffer(
             printf(" ");
         if (i % 32 == 0)
             printf("\n");
-        printf("%2x", buf[i]);
+        printf("%02x", buf[i]);
     }
 
     uv_mutex_lock(&me->mutex);
