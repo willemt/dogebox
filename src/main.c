@@ -121,9 +121,11 @@ static int __dispatch_from_buffer(
     int i;
     for (i=0; i<len; i++)
     {
-        printf("%x ", buf[i]);
+        if (i % 4 == 0)
+            printf(" ");
         if (i % 32 == 0)
             printf("\n");
+        printf("%2x", buf[i]);
     }
 
     uv_mutex_lock(&me->mutex);
