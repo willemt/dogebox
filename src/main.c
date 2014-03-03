@@ -324,8 +324,8 @@ static void __handshake_success(
         peer_send(me, NULL, pnethandle, data, strlen(ptr));
     }
 
-    sprintf(data,"e");
-    peer_send(me, NULL, pnethandle, data, strlen(data));
+    //sprintf(data,"e");
+    //peer_send(me, NULL, pnethandle, data, strlen(data));
 }
 
 int main(int argc, char **argv)

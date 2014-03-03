@@ -198,7 +198,7 @@ void of_conn_filelog(void* pc, const unsigned char* buf, unsigned int len)
     conn_private_t* me = pc;      
     bencode_t ben;
 
-    //printf("Received filelog: '%.*s'\n", len, buf);
+    printf("Received filelog: '%.*s'\n", len, buf);
 
     bencode_init(&ben, buf, len);
     if (!bencode_is_list(&ben))
