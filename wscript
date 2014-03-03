@@ -180,6 +180,8 @@ def build(bld):
         source= [
             "src/file2piece_mapper.c",
             "src/handshaker.c",
+            "src/connection.c",
+            "src/msghandler.c",
             cp+"YABTorrent/src/bt_download_manager.c",
             cp+"YABTorrent/src/bt_peer_manager.c",
             cp+"YABTorrent/src/bt_piece.c",
@@ -278,8 +280,6 @@ def build(bld):
     bld.program(
         source=[
             "src/main.c",
-            "src/connection.c",
-            "src/msghandler.c",
             cp+"CBitfield/bitfield.c",
             cp+"fff/fff.c",
             cp+"CBipBuffer/bipbuffer.c",

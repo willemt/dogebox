@@ -36,13 +36,13 @@ void Testof_handshake_success_from_good_handshake(
             .conn_pwp_dispatch = __conn_pwp_dispatch
             }), NULL);
 
-    ptr = sprintf(ptr,
+    ptr += sprintf(ptr,
             "l"
             "d"
             "4:path%d:%s"
             "4:sizei%de"
-            "10:is_deleted1:n"
-            "15:piece_idxi%de"
+            "10:is_deletedi1e"
+            "9:piece_idxi%de"
             "6:piecesi%de"
             "5:mtimei%de"
             "e"
@@ -50,7 +50,6 @@ void Testof_handshake_success_from_good_handshake(
             strlen("testing/123.txt"), "testing/123.txt",
             10, /* size */
             1, 1, 1);
-
 
     of_conn_filelog(c, msg, len);
 

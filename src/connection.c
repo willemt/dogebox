@@ -4,9 +4,6 @@
 #include <string.h>
 #include <assert.h>
 
-/* fff needs libuv */
-#include <uv.h>
-
 /* for uint32_t */
 #include <stdint.h>
 
@@ -24,9 +21,6 @@
 /* for f2p_t */
 #include "file2piece_mapper.h"
 
-/* for filewatcher */
-#include "fff.h"
-
 /* dogebox local needs dm_stats_t */
 #include "bt.h"
 
@@ -34,7 +28,7 @@
 #include "bt_piece_db.h"
 
 /* for sys_t */
-#include "dogebox_local.h"
+//#include "dogebox_local.h"
 
 /* for filelog reading */
 #include "bencode.h"
@@ -47,6 +41,12 @@
 typedef struct {
     pwp_conn_private_t pwp_conn;
     void* udata;
+
+    /* piecemapper */
+    void* pm;
+
+    /* piece db */
+    void* db;
 } conn_private_t;
 
 of_conn_t* of_conn_new(of_conn_cb_t* cb, void* udata)
@@ -56,6 +56,18 @@ of_conn_t* of_conn_new(of_conn_cb_t* cb, void* udata)
     me = calloc(1, sizeof(conn_private_t));
     me->udata = udata;
     return (of_conn_t*)me;
+}
+
+void of_conn_set_piece_mapper(of_conn_t* me_, void* pm)
+{
+    conn_private_t* me = (void*)me_;
+    me->pm = pm;
+}
+
+void of_conn_set_piece_db(of_conn_t* me_, void* db)
+{
+    conn_private_t* me = (void*)me_;
+    me->db = db;
 }
 
 #if 0
@@ -115,9 +127,6 @@ void of_conn_piecelog(of_conn_t* pco, char* filelog, int len)
 
 static void __process_file_dict(conn_private_t* me, bencode_t* d)
 {
-    /* piece mappper */
-    void* pm;
-
     // TODO: switch away from path
     char path[1000];
     const char *ppath = path;
@@ -126,8 +135,6 @@ static void __process_file_dict(conn_private_t* me, bencode_t* d)
     long int piece_idx = 0;
     long int pieces = 0;
     long int mtime = 0;
-
-    pm = ((sys_t*)me->udata)->pm;
 
     while (bencode_dict_has_next(d))
     {
@@ -163,22 +170,25 @@ static void __process_file_dict(conn_private_t* me, bencode_t* d)
         }
     }
 
-    file_t* f = f2p_get_file_from_path(pm, path);
+    if (!me->pm)
+        return;
+
+    file_t* f = f2p_get_file_from_path(me->pm, path);
 
     if (!f)
     {
         /* files from file logs are files by default */
-        f2p_file_added(pm, path, 0, fsize, mtime);
+        f2p_file_added(me->pm, path, 0, fsize, mtime);
     }
     else if (f->mtime < mtime)
     {
         if (f->size != fsize)
         {
-            f2p_file_changed(pm, path, fsize, mtime);
+            f2p_file_changed(me->pm, path, fsize, mtime);
         }
         else
         {
-            f2p_file_remap(pm, path, piece_idx, pieces);
+            f2p_file_remap(me->pm, path, piece_idx, pieces);
         }
     }
 }
@@ -188,7 +198,7 @@ void of_conn_filelog(void* pc, const unsigned char* buf, unsigned int len)
     conn_private_t* me = pc;      
     bencode_t ben;
 
-    printf("Received filelog: '%.*s'\n", len, buf);
+    //printf("Received filelog: '%.*s'\n", len, buf);
 
     bencode_init(&ben, buf, len);
     if (!bencode_is_list(&ben))
@@ -212,7 +222,7 @@ void of_conn_piecelog(void* pc, const unsigned char* buf, unsigned int len)
     bencode_t ben;
 
     /* piece database */
-    void* db = ((sys_t*)me->udata)->pm;
+    void* db = me->db;
 
     printf("Received piecelog: '%.*s'\n", len, buf);
 

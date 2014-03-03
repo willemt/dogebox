@@ -274,6 +274,8 @@ static void __on_tc_add_peer(void* callee,
     conn = of_conn_new(&((of_conn_cb_t) {
             .conn_pwp_dispatch = NULL
             }), me);
+    of_conn_set_piece_mapper(conn,me->pm);
+    of_conn_set_piece_db(conn,me->db);
     p = bt_dm_add_peer(me->bc, peer_id, peer_id_len, ip, ip_len, port,
             p_nethandle, conn);
     uv_mutex_unlock(&me->mutex);
