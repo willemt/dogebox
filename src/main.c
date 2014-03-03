@@ -304,28 +304,13 @@ static void __handshake_success(
         unsigned char bencode[1000];
         file_t* f = hashmap_iterator_next_value(files, &i);
 
-        printf("file size: %d\n", f->size);
-
-        printf( "l"
-                "d"
-                "4:path%d:%s"
-                "4:sizei%de"
-                "10:is_deleted1:n"
-                "15:piece_idxi%de"
-                "6:piecesi%de"
-                "5:mtimei%de"
-                "e"
-                "e",
-                strlen(f->path), f->path,
-                f->size, f->piece_start, f->npieces, f->mtime);
-
         sprintf(bencode,
                 "l"
                 "d"
                 "4:path%d:%s"
                 "4:sizei%de"
                 "10:is_deleted1:n"
-                "15:piece_idxi%de"
+                "9:piece_idxi%de"
                 "6:piecesi%de"
                 "5:mtimei%de"
                 "e"

@@ -17,11 +17,10 @@ static int __conn_pwp_dispatch(
         const unsigned char* buf,
         unsigned int len)
 {
-    printf("dispatching\n");
     return 1;
 }
 
-void Testof_handshake_success_from_good_handshake(
+void Testof_receives_filelog(
     CuTest * tc
 )
 {
@@ -52,7 +51,5 @@ void Testof_handshake_success_from_good_handshake(
             1, 1, 1);
 
     of_conn_filelog(c, msg, len);
-
-//    CuAssertTrue(tc, 1 == ret);
 }
 
