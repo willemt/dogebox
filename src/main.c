@@ -118,9 +118,16 @@ static int __dispatch_from_buffer(
     sys_t* me = callee;
 
     printf("got some data: %d\n", len);
+    int i;
+    for (i=0; i<len; i++)
+    {
+        printf("%x ", buf[i]);
+        if (i % 32 == 0)
+            printf("\n");
+    }
 
     uv_mutex_lock(&me->mutex);
-    bt_dm_dispatch_from_buffer(me->bc,peer_nethandle,buf,len);
+    bt_dm_dispatch_from_buffer(me->bc, peer_nethandle, buf, len);
     uv_mutex_unlock(&me->mutex);
     return 1;
 }
