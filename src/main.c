@@ -32,8 +32,6 @@
 #include "config.h"
 #include "networkfuncs.h"
 
-//#include "linked_list_queue.h"
-
 /* for iterating through f2p hashmap */
 #include "linked_list_hashmap.h"
 
@@ -66,13 +64,6 @@
 #include "dogebox_local.h"
 
 #define PROGRAM_NAME "bt"
-
-#if 0
-enum {
-    OF_MSGTYPE_FILELOG = 9,
-    OF_MSGTYPE_PIECELOG = 10,
-};
-#endif
 
 uv_loop_t *loop;
 

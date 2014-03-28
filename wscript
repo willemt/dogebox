@@ -25,7 +25,8 @@ contribs = [
 ('CTorrentFileReader', 'http://github.com/willemt/CTorrentFileReader'),
 ('CSparseFileAllocator', 'http://github.com/willemt/CSparseFileAllocator'),
 ('CHashMapViaLinkedList','http://github.com/willemt/CHashMapViaLinkedList'),
-('CHeaplessBencodeReader', 'http://github.com/willemt/CHeaplessBencodeReader'),
+#('CHeaplessBencodeReader', 'http://github.com/willemt/CHeaplessBencodeReader'),
+('CStreamingBencodeReader', 'http://github.com/willemt/CHeaplessStreamingReader'),
 ]
 
 def configure(conf):
@@ -147,7 +148,8 @@ def scenario_test(bld, src, ccflag=None):
         includes=[
             bld.env.CONTRIB_PATH+"CConfig-re",
             bld.env.CONTRIB_PATH+"CBTTrackerClient",
-            bld.env.CONTRIB_PATH+"CHeaplessBencodeReader",
+            #bld.env.CONTRIB_PATH+"CHeaplessBencodeReader",
+            bld.env.CONTRIB_PATH+"CHeaplessStreamingReader",
             bld.env.CONTRIB_PATH+"CTorrentFileReader",
             bld.env.CONTRIB_PATH+"CHashMapViaLinkedList",
             bld.env.CONTRIB_PATH+"CBipBuffer",
@@ -211,7 +213,8 @@ def build(bld):
             cp+"CEventTimer/event_timer.c",
             cp+"CSimpleBitstream/bitstream.c",
             cp+"CSparseCounter/sparse_counter.c",
-            cp+"CHeaplessBencodeReader/bencode.c",
+            #cp+"CHeaplessBencodeReader/bencode.c",
+            cp+"CHeaplessStreamingReader/bencode.c",
             cp+"PeerWireProtocol/pwp_connection.c",
             cp+"PeerWireProtocol/pwp_util.c",
             cp+"PeerWireProtocol/pwp_bitfield.c",
@@ -246,7 +249,8 @@ def build(bld):
             cp+"CSimpleBitstream",
             cp+"CSparseFileAllocator",
             cp+"CHashMapViaLinkedList",
-            cp+"CHeaplessBencodeReader",
+            #cp+"CHeaplessBencodeReader",
+            cp+"CHeaplessStreamingReader",
            ], 
         cflags=[
             '-Werror',
@@ -312,6 +316,7 @@ def build(bld):
             cp+"CLinkedListQueue",
             cp+"CTorrentFileReader",
             cp+"CHashMapViaLinkedList",
-            cp+"CHeaplessBencodeReader",
+            #cp+"CHeaplessBencodeReader",
+            cp+"CHeaplessStreamingReader",
            ])
 

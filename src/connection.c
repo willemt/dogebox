@@ -12,6 +12,8 @@
 #include "dogebox_connection.h"
 #include "dogebox_msghandler.h"
 
+#include "dogebox_connection_private.h"
+
 /* for sys_t */
 #include "linked_list_queue.h"
 
@@ -38,16 +40,26 @@
 #include "pwp_connection.h"
 #include "pwp_connection_private.h"
 
-typedef struct {
-    pwp_conn_private_t pwp_conn;
-    void* udata;
 
-    /* piecemapper */
-    void* pm;
+static bencode_callbacks_t __fl_cb = {
+    .hit_int = connection_fl_int,
+    .hit_str = connection_fl_str,
+    .dict_enter = NULL,
+    .dict_leave = NULL,
+    .list_enter = NULL,
+    .list_leave = NULL,
+    .list_next = NULL
+};
 
-    /* piece db */
-    void* db;
-} conn_private_t;
+static bencode_callbacks_t __pl_cb = {
+    .hit_int = connection_pl_int,
+    .hit_str = connection_pl_str,
+    .dict_enter = NULL,
+    .dict_leave = NULL,
+    .list_enter = NULL,
+    .list_leave = NULL,
+    .list_next = NULL
+};
 
 of_conn_t* of_conn_new(of_conn_cb_t* cb, void* udata)
 {
@@ -55,6 +67,8 @@ of_conn_t* of_conn_new(of_conn_cb_t* cb, void* udata)
 
     me = calloc(1, sizeof(conn_private_t));
     me->udata = udata;
+    me->fl_reader = bencode_new(10, &__cb, NULL);
+    me->pl_reader = bencode_new(10, &__cb, NULL);
     return (of_conn_t*)me;
 }
 
@@ -125,6 +139,7 @@ void of_conn_piecelog(of_conn_t* pco, char* filelog, int len)
 }
 #endif
 
+#if 0
 static void __process_file_dict(conn_private_t* me, bencode_t* d)
 {
     // TODO: switch away from path
@@ -192,7 +207,9 @@ static void __process_file_dict(conn_private_t* me, bencode_t* d)
         }
     }
 }
+#endif
 
+#if 0
 void of_conn_filelog(void* pc, const unsigned char* buf, unsigned int len)
 {
     conn_private_t* me = pc;      
@@ -278,3 +295,24 @@ void of_conn_piecelog(void* pc, const unsigned char* buf, unsigned int len)
     }
 }
 
+#endif
+void of_conn_filelog(void* pc, const unsigned char* buf, unsigned int len)
+{
+    conn_private_t* me = pc;      
+    bencode_t ben;
+
+    printf("Received filelog: '%.*s'\n", len, buf);
+
+}
+
+void of_conn_piecelog(void* pc, const unsigned char* buf, unsigned int len)
+{
+    conn_private_t* me = pc;      
+    bencode_t ben;
+
+    printf("Received piecelog: '%.*s'\n", len, buf);
+
+    /* piece database */
+    void* db = me->db;
+
+}

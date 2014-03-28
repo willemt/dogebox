@@ -285,6 +285,8 @@ int of_pwp_filelog(void *me_, void* m_, void* udata,
 
     int size = min(*len, m->len - 1);
 
+    printf("len: %d %d\n", *len, size);
+
     of_conn_filelog(me->pc, *buf, size);
     mh_endmsg(me);
     *buf += size;
