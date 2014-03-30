@@ -12,8 +12,6 @@
 #include "dogebox_connection.h"
 #include "dogebox_msghandler.h"
 
-#include "dogebox_connection_private.h"
-
 /* for sys_t */
 #include "linked_list_queue.h"
 
@@ -39,6 +37,9 @@
 #include "sparse_counter.h"
 #include "pwp_connection.h"
 #include "pwp_connection_private.h"
+
+#include "dogebox_connection_private.h"
+
 
 
 static bencode_callbacks_t __fl_cb = {
@@ -67,8 +68,8 @@ of_conn_t* of_conn_new(of_conn_cb_t* cb, void* udata)
 
     me = calloc(1, sizeof(conn_private_t));
     me->udata = udata;
-    me->fl_reader = bencode_new(10, &__cb, NULL);
-    me->pl_reader = bencode_new(10, &__cb, NULL);
+    me->fl_reader = bencode_new(10, &__fl_cb, NULL);
+    me->pl_reader = bencode_new(10, &__pl_cb, NULL);
     return (of_conn_t*)me;
 }
 
@@ -302,7 +303,10 @@ void of_conn_filelog(void* pc, const unsigned char* buf, unsigned int len)
     bencode_t ben;
 
     printf("Received filelog: '%.*s'\n", len, buf);
-
+    if (1 != bencode_dispatch_from_buffer(me->fl_reader, buf, len))
+    {
+        printf("ERROR reading: %.*s\n", len, buf);
+    }
 }
 
 void of_conn_piecelog(void* pc, const unsigned char* buf, unsigned int len)
@@ -313,6 +317,11 @@ void of_conn_piecelog(void* pc, const unsigned char* buf, unsigned int len)
     printf("Received piecelog: '%.*s'\n", len, buf);
 
     /* piece database */
-    void* db = me->db;
+    //void* db = me->db;
+
+    if (1 != bencode_dispatch_from_buffer(me->pl_reader, buf, len))
+    {
+        printf("ERROR reading: %.*s\n", len, buf);
+    }
 
 }

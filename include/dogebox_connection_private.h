@@ -26,6 +26,16 @@ int connection_pl_str(bencode_t *s,
         const char *dict_key,
         unsigned int v_total_len __attribute__((__unused__)),
         const unsigned char* val,
-        unsigned int v_len) ;
+        unsigned int v_len);
+
+int connection_fl_int(bencode_t *s,
+        const char *dict_key,
+        const long int val);
+
+int connection_fl_str(bencode_t *s,
+        const char *dict_key,
+        unsigned int v_total_len __attribute__((__unused__)),
+        const unsigned char* val,
+        unsigned int v_len);
 
 #endif /* DOGEBOX_CONNECTION_PRIVATE_H */
