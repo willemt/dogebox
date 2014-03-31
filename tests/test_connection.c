@@ -40,7 +40,7 @@ void Testof_receives_filelog(
             "d"
             "4:path%d:%s"
             "4:sizei%de"
-            "10:is_deletedi1e"
+            "10:is_deleted1:y"
             "9:piece_idxi%de"
             "6:piecesi%de"
             "5:mtimei%de"
