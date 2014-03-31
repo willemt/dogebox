@@ -50,7 +50,7 @@ void Testof_receives_filelog(
             10, /* size */
             1, 1, 1);
 
-    of_conn_filelog(c, msg, ptr - msg);
+    CuAssertTrue(tc, 1 == of_conn_filelog(c, msg, ptr - msg));
 }
 
 void Testof_receives_piecelog(
@@ -83,7 +83,7 @@ void Testof_receives_piecelog(
             1 /* mtime */
             );
 
-    of_conn_piecelog(c, msg, ptr - msg);
+    CuAssertTrue(tc, 1 == of_conn_piecelog(c, msg, ptr - msg));
 }
 
 void Testof_piecelog_needs_to_have_hash_of_20len(
@@ -116,5 +116,6 @@ void Testof_piecelog_needs_to_have_hash_of_20len(
             1 /* mtime */
             );
 
-    of_conn_piecelog(c, msg, ptr - msg);
+    CuAssertTrue(tc, 0 == of_conn_piecelog(c, msg, ptr - msg));
+}
 

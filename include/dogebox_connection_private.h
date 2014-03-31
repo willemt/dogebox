@@ -16,6 +16,10 @@ typedef struct {
 
     /* file log reader */
     bencode_t* fl_reader;
+
+    /* current file we are reading from wire */
+    file_t file;
+
 } conn_private_t;
 
 int connection_pl_int(bencode_t *s,
@@ -37,5 +41,8 @@ int connection_fl_str(bencode_t *s,
         unsigned int v_total_len __attribute__((__unused__)),
         const unsigned char* val,
         unsigned int v_len);
+
+//int connection_fl_list_next(bencode_t *s);
+int connection_fl_dict_leave(bencode_t *s, const char *dict_key);
 
 #endif /* DOGEBOX_CONNECTION_PRIVATE_H */

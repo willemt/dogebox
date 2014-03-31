@@ -6,6 +6,7 @@ def options(opt):
 
 contribs = [
 ('fff', 'http://github.com/willemt/fff'),
+('sds', 'https://github.com/antirez/sds),
 ('CBag', 'http://github.com/willemt/CBag'),
 ('CHeap','http://github.com/willemt/CHeap'),
 ('libuv','http://github.com/joyent/libuv'),
@@ -186,6 +187,7 @@ def build(bld):
             "src/connection_filelog.c",
             "src/connection_piecelog.c",
             "src/msghandler.c",
+            "src/sds/sds.c",
             cp+"YABTorrent/src/bt_download_manager.c",
             cp+"YABTorrent/src/bt_peer_manager.c",
             cp+"YABTorrent/src/bt_piece.c",
@@ -234,6 +236,7 @@ def build(bld):
         lib = libs,
         includes=[
             './include',
+            cp+"sds",
             cp+"CBag",
             cp+"CHeap",
             cp+"CAVLTree",

@@ -40,13 +40,11 @@
 
 #include "dogebox_connection_private.h"
 
-
-
 static bencode_callbacks_t __fl_cb = {
     .hit_int = connection_fl_int,
     .hit_str = connection_fl_str,
     .dict_enter = NULL,
-    .dict_leave = NULL,
+    .dict_leave = connection_fl_dict_leave,
     .list_enter = NULL,
     .list_leave = NULL,
     .list_next = NULL
@@ -68,8 +66,8 @@ of_conn_t* of_conn_new(of_conn_cb_t* cb, void* udata)
 
     me = calloc(1, sizeof(conn_private_t));
     me->udata = udata;
-    me->fl_reader = bencode_new(10, &__fl_cb, NULL);
-    me->pl_reader = bencode_new(10, &__pl_cb, NULL);
+    me->fl_reader = bencode_new(10, &__fl_cb, me);
+    me->pl_reader = bencode_new(10, &__pl_cb, me);
     return (of_conn_t*)me;
 }
 

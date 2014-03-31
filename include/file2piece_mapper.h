@@ -13,6 +13,7 @@ typedef struct {
 
 typedef struct file_s {
     char* path;
+    int path_len;
 
     /* size of file in bytes */
     unsigned int size;

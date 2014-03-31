@@ -20,7 +20,6 @@ int of_msghandler_dispatch_from_buffer(void *mh,
         const unsigned char* buf,
         unsigned int len);
 
-
 int of_pwp_filelog(void *me_, void* m_, void* udata,
         const unsigned char** buf, unsigned int *len);
 
