@@ -53,3 +53,68 @@ void Testof_receives_filelog(
     of_conn_filelog(c, msg, ptr - msg);
 }
 
+void Testof_receives_piecelog(
+    CuTest * tc
+)
+{
+    void *hs;
+    unsigned char msg[1000], *ptr = msg, *m = msg;
+    unsigned int ii, ret, len;
+
+    of_conn_t* c;
+
+    c = of_conn_new(
+            &((of_conn_cb_t){
+            .conn_pwp_dispatch = __conn_pwp_dispatch
+            }), NULL);
+
+    ptr += sprintf(ptr,
+            "l"
+            "d"
+            "3:idxi%de"
+            "4:sizei%de"
+            "4:hash%se"
+            "5:mtimei%de"
+            "e"
+            "e",
+            10, /* idx */
+            10, /* size */
+            strlen("testing/123.txt"), "testing/123.txt", /* idx */
+            1 /* mtime */
+            );
+
+    of_conn_piecelog(c, msg, ptr - msg);
+}
+
+void Testof_piecelog_needs_to_have_hash_of_20len(
+    CuTest * tc
+)
+{
+    void *hs;
+    unsigned char msg[1000], *ptr = msg, *m = msg;
+    unsigned int ii, ret, len;
+
+    of_conn_t* c;
+
+    c = of_conn_new(
+            &((of_conn_cb_t){
+            .conn_pwp_dispatch = __conn_pwp_dispatch
+            }), NULL);
+
+    ptr += sprintf(ptr,
+            "l"
+            "d"
+            "3:idxi%de"
+            "4:sizei%de"
+            "4:hash%se"
+            "5:mtimei%de"
+            "e"
+            "e",
+            10, /* idx */
+            10, /* size */
+            strlen("testing/123.txt"), "testing/123.txt", /* idx */
+            1 /* mtime */
+            );
+
+    of_conn_piecelog(c, msg, ptr - msg);
+

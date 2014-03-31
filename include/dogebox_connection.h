@@ -28,4 +28,12 @@ void of_conn_set_piece_mapper(of_conn_t* me_, void* pm);
 
 void of_conn_set_piece_db(of_conn_t* me_, void* db);
 
+/**
+ * @return 0 on failure */
+int of_conn_filelog(void* pc, const unsigned char* buf, unsigned int len);
+
+/**
+ * @return 0 on failure */
+int of_conn_piecelog(void* pc, const unsigned char* buf, unsigned int len);
+
 #endif /* DOGEBOX_CONNECTION_H */

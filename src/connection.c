@@ -297,7 +297,8 @@ void of_conn_piecelog(void* pc, const unsigned char* buf, unsigned int len)
 }
 
 #endif
-void of_conn_filelog(void* pc, const unsigned char* buf, unsigned int len)
+
+int of_conn_filelog(void* pc, const unsigned char* buf, unsigned int len)
 {
     conn_private_t* me = pc;      
     bencode_t ben;
@@ -306,10 +307,13 @@ void of_conn_filelog(void* pc, const unsigned char* buf, unsigned int len)
     if (1 != bencode_dispatch_from_buffer(me->fl_reader, buf, len))
     {
         printf("ERROR reading: %.*s\n", len, buf);
+        return 0;
     }
+
+    return 1;
 }
 
-void of_conn_piecelog(void* pc, const unsigned char* buf, unsigned int len)
+int of_conn_piecelog(void* pc, const unsigned char* buf, unsigned int len)
 {
     conn_private_t* me = pc;      
     bencode_t ben;
@@ -322,6 +326,8 @@ void of_conn_piecelog(void* pc, const unsigned char* buf, unsigned int len)
     if (1 != bencode_dispatch_from_buffer(me->pl_reader, buf, len))
     {
         printf("ERROR reading: %.*s\n", len, buf);
+        return 0;
     }
 
+    return 1;
 }
