@@ -171,28 +171,28 @@ File log messages have the following message format:
 When receiving this message we process each file dictionary within the bencoded
 string, and: 
 
-    - (FL01) if we don't have a file that has the same path, we add the file to
-      our database and create the file in our local directory
+    - if we don't have a file that has the same path, we add the file to
+      our database and create the file in our local directory (FL01)
 
     - if the file's mtime is less than ours:
 
-     - (FL04) we ignore the file and enqueue the file info from our database to
-       be sent to the peer. After we've processed the whole file log we send a
-       subset of our piece log (see below).
+     - we ignore the file and enqueue the file info from our database to be
+       sent to the peer. After we've processed the whole file log we send a
+       subset of our piece log (see below). (FL04)
 
     - if the file's mtime is higher than ours:
 
-     - (FL02) if we don't have pieces that match the piece range, we add the
-       piece range to our database
+     - if we don't have pieces that match the piece range, we add the piece
+       range to our database (FL02)
 
-     - (FL03) if we don't have pieces that match the piece range, and the piece
-       range conflicts with one of our piece ranges, we re-map our conflicting
+     - if we don't have pieces that match the piece range, and the piece range
+       conflicts with one of our piece ranges, we re-map our conflicting
        piece(s) piece ranges and enque the re-mapped file to be sent in the
        file log subset mentioned below. We then add the new piece range to our
-       database
+       database (FL03)
 
-     - (FL05) if the file has a "is_deleted" flag set to "y", we delete the file
-       and set our "is_deleted" flag to "y"
+     - if the file has a "is_deleted" flag set to "y", we delete the file and
+       set our "is_deleted" flag to "y" (FL05) 
 
 **File Log subset**
 This subset consists of files:
