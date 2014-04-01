@@ -106,13 +106,13 @@ void Testof_piecelog_needs_to_have_hash_of_20len(
             "d"
             "3:idxi%de"
             "4:sizei%de"
-            "4:hash%se"
+            "4:hash%d:%s"
             "5:mtimei%de"
             "e"
             "e",
             10, /* idx */
             10, /* size */
-            strlen("testing/123.txt"), "testing/123.txt", /* idx */
+            strlen("testing/123.txt"), "testing/123.txt", /* hash */
             1 /* mtime */
             );
 
