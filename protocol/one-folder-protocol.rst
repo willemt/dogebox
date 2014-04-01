@@ -180,7 +180,7 @@ When receiving this message we:
 
     - if a file's mtime is less than ours, we ignore the file and enqueue the
       file info from our database to be sent to the peer. After we've processed
-      the whole file log we send a subset of our piece log.
+      the whole file log we send a subset of our piece log (see below).
 
 **File Log subset**
 This subset consists of files:
@@ -205,18 +205,18 @@ Piece log messages have the following message format:
 
 When receiving this message, we: 
 
-    - if we don't have a piece that has the same index in our database, we 
+    - (PL01) if we don't have a piece that has the same index in our database, we 
       disconnect *(This is because the file log creates the pieces we require.
       If the Piece Log indicates wer need to add pieces, this is most likely a 
       processing error)*
 
-    - update our database with this piece's info. If a pieces's mtime is higher
+    - (PL02) update our database with this piece's info. If a pieces's mtime is higher
       than ours. See below paragraph for how the replacement works
 
     - we ignore the piece and enque the piece info from our database to be sent
       to the peer, if a pieces's mtime is less than ours, 
 
-If we replace our piece info with a newer piece info, we:
+When we replace our piece info with a newer piece info:
 
     - if we had a complete version of the piece before the update, send a
       DONTHAVE message to all our peers. The updated piece index is the

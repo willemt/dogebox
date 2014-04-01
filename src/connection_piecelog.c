@@ -27,6 +27,9 @@
 /* for piece database */
 #include "bt_piece_db.h"
 
+/* for piece get_hash() */
+#include "bt_piece.h"
+
 /* for filelog reading */
 #include "bencode.h"
 
@@ -102,26 +105,21 @@ int connection_pl_dict_leave(bencode_t *s, const char *dict_key)
     if (!me->pm)
         return 1;
 
-    /* b: new file (from peer) */
-    file_t* b = &me->file;
+    bt_piece_t* a = bt_piecedb_get(me->db, me->piece.idx);
 
-    /* a: old file (currently in our register) */
-    file_t* a = f2p_get_file_from_path(me->pm, b->path);
-
+    /* PL01 */
     if (!a)
     {
-        f2p_file_added(me->pm, b->path, 0, b->size, b->mtime);
+        return 0;
     }
-    else if (a->mtime < b->mtime)
+
+    char* a_hash = bt_piece_get_hash(a);
+
+    assert(a_hash);
+
+    if (!memcmp(a_hash, me->piece.hash, 20))
     {
-        if (a->size != b->size)
-        {
-            f2p_file_changed(me->pm, b->path, b->size, b->mtime);
-        }
-        else
-        {
-            f2p_file_remap(me->pm, b->path, b->piece_start, b->npieces);
-        }
+
     }
 
     return 1;
