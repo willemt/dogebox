@@ -2,6 +2,13 @@
 #define DOGEBOX_CONNECTION_PRIVATE_H
 
 typedef struct {
+    int idx;
+    int size;
+    int mtime;
+    unsigned char hash[20];
+} piece_t;
+
+typedef struct {
     pwp_conn_private_t pwp_conn;
     void* udata;
 
@@ -17,8 +24,9 @@ typedef struct {
     /* file log reader */
     bencode_t* fl_reader;
 
-    /* current file we are reading from wire */
+    /* current file/piece we are reading from wire */
     file_t file;
+    piece_t piece;
 
 } conn_private_t;
 

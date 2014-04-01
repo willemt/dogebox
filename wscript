@@ -187,7 +187,7 @@ def build(bld):
             "src/connection_filelog.c",
             "src/connection_piecelog.c",
             "src/msghandler.c",
-            cp+"sds.c",
+            cp+"sds/sds.c",
             cp+"YABTorrent/src/bt_download_manager.c",
             cp+"YABTorrent/src/bt_peer_manager.c",
             cp+"YABTorrent/src/bt_piece.c",

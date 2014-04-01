@@ -109,23 +109,25 @@ int connection_fl_dict_leave(bencode_t *s, const char *dict_key)
     if (!me->pm)
         return 1;
 
-    file_t* f = f2p_get_file_from_path(me->pm, path);
-    file_t* n = me->file;
+    /* b: new file (from peer) */
+    file_t* b = &me->file;
 
-    if (!f)
+    /* a: old file (currently in our register) */
+    file_t* a = f2p_get_file_from_path(me->pm, b->path);
+
+    if (!a)
     {
-        /* files from file logs are files by default */
-        f2p_file_added(me->pm, n->path, 0, n->size, n->mtime);
+        f2p_file_added(me->pm, b->path, 0, b->size, b->mtime);
     }
-    else if (f->mtime < n->mtime)
+    else if (a->mtime < b->mtime)
     {
-        if (f->size != n->fsize)
+        if (a->size != b->size)
         {
-            f2p_file_changed(me->pm, n->path, n->size, n->mtime);
+            f2p_file_changed(me->pm, b->path, b->size, b->mtime);
         }
         else
         {
-            f2p_file_remap(me->pm, n->path, n->piece_start, n->npieces);
+            f2p_file_remap(me->pm, b->path, b->piece_start, b->npieces);
         }
     }
 
