@@ -51,10 +51,12 @@ int connection_fl_int(bencode_t *s,
     {
         me->file.piece_start = val;
     }
+#if 0
     else if (!strcmp(dict_key, "pieces"))
     {
         me->file.npieces = val;
     }
+#endif
     else if (!strcmp(dict_key, "mtime"))
     {
         me->file.mtime = val;
@@ -127,7 +129,7 @@ int connection_fl_dict_leave(bencode_t *s, const char *dict_key)
         }
         else
         {
-            f2p_file_remap(me->pm, b->path, b->piece_start, b->npieces);
+//            f2p_file_remap(me->pm, b->path, b->piece_start, b->npieces);
         }
     }
 

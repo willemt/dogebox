@@ -47,13 +47,13 @@ void Testof_receives_filelog(
             "4:sizei%de"
             "10:is_deleted1:y"
             "9:piece_idxi%de"
-            "6:piecesi%de"
             "5:mtimei%de"
             "e"
             "e",
             strlen("testing/123.txt"), "testing/123.txt",
             10, /* size */
-            1, 1, 1);
+            1, /* piece_idx */
+            1 /* mtime */);
 
     CuAssertTrue(tc, 1 == of_conn_filelog(c, msg, ptr - msg));
 
@@ -90,13 +90,13 @@ void Testof_receives_filelog_adds_file_if_we_dont_have_it(
             "4:sizei%de"
             "10:is_deleted1:y"
             "9:piece_idxi%de"
-            "6:piecesi%de"
             "5:mtimei%de"
             "e"
             "e",
             strlen(file_name), file_name,
             10, /* size */
-            1, 1, 1);
+            1, /* piece_idx */
+            1 /* mtime */);
 
     CuAssertTrue(tc, 1 == of_conn_filelog(c, msg, ptr - msg));
     CuAssertTrue(tc, 1 == f2p_get_nfiles(pm));
@@ -135,7 +135,6 @@ void Testof_receives_filelog_adds_piece_range_if_we_dont_have_it(
             "4:sizei%de"
             "10:is_deleted1:%s"
             "9:piece_idxi%de"
-            "6:piecesi%de"
             "5:mtimei%de"
             "e"
             "e",
@@ -143,7 +142,6 @@ void Testof_receives_filelog_adds_piece_range_if_we_dont_have_it(
             10, /* size */
             "y", /* is_deleted */
             1, /* piece_idx */
-            1, /* pieces */
             1 /* mtime */);
     CuAssertTrue(tc, 1 == of_conn_filelog(c, msg, ptr - msg));
     printf("files: %d\n", f2p_get_nfiles(pm));
@@ -162,7 +160,6 @@ void Testof_receives_filelog_adds_piece_range_if_we_dont_have_it(
             "4:sizei%de"
             "10:is_deleted1:%s"
             "9:piece_idxi%de"
-            "6:piecesi%de"
             "5:mtimei%de"
             "e"
             "e",
@@ -170,7 +167,6 @@ void Testof_receives_filelog_adds_piece_range_if_we_dont_have_it(
             10, /* size */
             "y", /* is_deleted */
             2, /* piece_idx */
-            2, /* pieces */
             1 /* mtime */);
     CuAssertTrue(tc, 1 == of_conn_filelog(c, msg, ptr - msg));
     CuAssertTrue(tc, 2 == f2p_get_nfiles(pm));
