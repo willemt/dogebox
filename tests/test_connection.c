@@ -73,7 +73,7 @@ void Testof_receives_piecelog(
             "d"
             "3:idxi%de"
             "4:sizei%de"
-            "4:hash%se"
+            "4:hash%d:%s"
             "5:mtimei%de"
             "e"
             "e",
