@@ -42,7 +42,6 @@ int connection_fl_str(bencode_t *s,
         const unsigned char* val,
         unsigned int v_len);
 
-//int connection_fl_list_next(bencode_t *s);
 int connection_fl_dict_leave(bencode_t *s, const char *dict_key);
 
 #endif /* DOGEBOX_CONNECTION_PRIVATE_H */

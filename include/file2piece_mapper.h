@@ -27,6 +27,8 @@ typedef struct file_s {
     int piece_start;
     /* number of pieces */
     int npieces;
+
+    int is_deleted;
 } file_t;
 
 f2p_t* f2p_new(void* piecedb, unsigned int piece_size);

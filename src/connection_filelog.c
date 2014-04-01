@@ -45,19 +45,19 @@ int connection_fl_int(bencode_t *s,
 
     if (!strcmp(dict_key, "size"))
     {
-
+        me->file.size = val;
     }
     else if (!strcmp(dict_key, "piece_idx"))
     {
-
+        me->file.piece_start = val;
     }
     else if (!strcmp(dict_key, "pieces"))
     {
-
+        me->file.npieces = val;
     }
     else if (!strcmp(dict_key, "mtime"))
     {
-
+        me->file.mtime = val;
     }
     else
     {
@@ -80,12 +80,18 @@ int connection_fl_str(bencode_t *s,
     {
         if (me->file.path_len < v_len)
         {
-
+            me->file.path_len = v_len;
+            me->file.path = realloc(me->file.path, v_len);
         }
+        strncpy(me->file.path,val,v_len);
     }
     else if (!strcmp(dict_key, "is_deleted"))
     {
-
+        assert(v_len == 1);
+        if (*val == 'y') 
+        {
+            me->file.is_deleted = 1;
+        }
     }
     else
     {
@@ -104,21 +110,22 @@ int connection_fl_dict_leave(bencode_t *s, const char *dict_key)
         return 1;
 
     file_t* f = f2p_get_file_from_path(me->pm, path);
+    file_t* n = me->file;
 
     if (!f)
     {
         /* files from file logs are files by default */
-        f2p_file_added(me->pm, path, 0, fsize, mtime);
+        f2p_file_added(me->pm, n->path, 0, n->size, n->mtime);
     }
-    else if (f->mtime < mtime)
+    else if (f->mtime < n->mtime)
     {
-        if (f->size != fsize)
+        if (f->size != n->fsize)
         {
-            f2p_file_changed(me->pm, path, fsize, mtime);
+            f2p_file_changed(me->pm, n->path, n->size, n->mtime);
         }
         else
         {
-            f2p_file_remap(me->pm, path, piece_idx, pieces);
+            f2p_file_remap(me->pm, n->path, n->piece_start, n->npieces);
         }
     }
 
