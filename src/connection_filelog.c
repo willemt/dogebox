@@ -82,10 +82,11 @@ int connection_fl_str(bencode_t *s,
     {
         if (me->file.path_len < v_len)
         {
-            me->file.path_len = v_len;
-            me->file.path = realloc(me->file.path, v_len);
+            me->file.path_len = v_len+1;
+            me->file.path = realloc(me->file.path, v_len+1);
         }
         strncpy(me->file.path,val,v_len);
+        me->file.path[v_len] = 0;
     }
     else if (!strcmp(dict_key, "is_deleted"))
     {
@@ -123,7 +124,11 @@ int connection_fl_dict_leave(bencode_t *s, const char *dict_key)
     }
     else if (a->mtime < b->mtime)
     {
-        if (a->size != b->size)
+        if (1 == b->is_deleted)
+        {
+            f2p_file_removed(me->pm, a->path);
+        }
+        else if (a->size != b->size)
         {
             f2p_file_changed(me->pm, b->path, b->size, b->mtime);
         }

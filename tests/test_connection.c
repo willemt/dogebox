@@ -45,7 +45,7 @@ void Testof_receives_filelog(
             "d"
             "4:path%d:%s"
             "4:sizei%de"
-            "10:is_deleted1:y"
+            "10:is_deleted1:n"
             "9:piece_idxi%de"
             "5:mtimei%de"
             "e"
@@ -70,17 +70,16 @@ void Testof_receives_filelog_adds_file_if_we_dont_have_it(
 
     of_conn_t* c;
 
-    char* file_name = "testing/123.txt";
-
     c = of_conn_new(
             &((of_conn_cb_t){
             .conn_pwp_dispatch = __conn_pwp_dispatch
             }), NULL);
 
     void* db = bt_piecedb_new();
-    void* pm = f2p_new(db, 1 << 21);
+    void* pm = f2p_new(db, 10);
     of_conn_set_piece_mapper(c, pm);
 
+    char* file_name = "testing/123.txt";
     CuAssertTrue(tc, !f2p_get_file_from_path(pm, file_name));
 
     ptr += sprintf(ptr,
@@ -88,7 +87,7 @@ void Testof_receives_filelog_adds_file_if_we_dont_have_it(
             "d"
             "4:path%d:%s"
             "4:sizei%de"
-            "10:is_deleted1:y"
+            "10:is_deleted1:n"
             "9:piece_idxi%de"
             "5:mtimei%de"
             "e"
@@ -114,17 +113,17 @@ void Testof_receives_filelog_adds_piece_range_if_we_dont_have_it(
 
     of_conn_t* c;
 
-    char* file_name = "testing/a.txt";
-
     c = of_conn_new(
             &((of_conn_cb_t){
             .conn_pwp_dispatch = __conn_pwp_dispatch
             }), NULL);
 
     void* db = bt_piecedb_new();
-    void* pm = f2p_new(db, 1 << 21);
+    void* pm = f2p_new(db, 10);
     of_conn_set_piece_mapper(c, pm);
 
+    char* file_name = malloc(100);
+    strcpy(file_name, "testing/a.txt");
     CuAssertTrue(tc, 0 == bt_piecedb_count(db));
     CuAssertTrue(tc, !f2p_get_file_from_path(pm, file_name));
 
@@ -140,11 +139,10 @@ void Testof_receives_filelog_adds_piece_range_if_we_dont_have_it(
             "e",
             strlen(file_name), file_name,
             10, /* size */
-            "y", /* is_deleted */
+            "n", /* is_deleted */
             1, /* piece_idx */
             1 /* mtime */);
     CuAssertTrue(tc, 1 == of_conn_filelog(c, msg, ptr - msg));
-    printf("files: %d\n", f2p_get_nfiles(pm));
     CuAssertTrue(tc, 1 == f2p_get_nfiles(pm));
     CuAssertTrue(tc, NULL != f2p_get_file_from_path(pm, file_name));
     CuAssertTrue(tc, 1 == bt_piecedb_count(db));
@@ -152,7 +150,58 @@ void Testof_receives_filelog_adds_piece_range_if_we_dont_have_it(
     CuAssertTrue(tc, NULL == bt_piecedb_get(db, 1));
 
     ptr = msg;
-    file_name = "testing/b.txt";
+    strcpy(file_name, "testing/b.txt");
+    ptr += sprintf(ptr,
+            "l"
+            "d"
+            "4:path%d:%s"
+            "4:sizei%de"
+            "10:is_deleted1:%s"
+            "9:piece_idxi%de"
+            "5:mtimei%de"
+            "e"
+            "e",
+            strlen(file_name), file_name,
+            20, /* size */
+            "n", /* is_deleted */
+            2, /* piece_idx */
+            1 /* mtime */);
+    CuAssertTrue(tc, 1 == of_conn_filelog(c, msg, ptr - msg));
+    CuAssertTrue(tc, 2 == f2p_get_nfiles(pm));
+    CuAssertTrue(tc, NULL != f2p_get_file_from_path(pm, file_name));
+    CuAssertTrue(tc, 3 == bt_piecedb_count(db));
+    CuAssertTrue(tc, NULL != bt_piecedb_get(db, 0));
+    CuAssertTrue(tc, NULL != bt_piecedb_get(db, 1));
+    CuAssertTrue(tc, NULL != bt_piecedb_get(db, 2));
+}
+
+/* FL05 */
+void Testof_receives_filelog_deletes_file(
+    CuTest * tc
+)
+{
+    void *hs;
+    unsigned char msg[1000], *ptr = msg, *m = msg;
+    unsigned int ii, ret, len;
+
+    file_t* f;
+
+    of_conn_t* c;
+
+    c = of_conn_new(
+            &((of_conn_cb_t){
+            .conn_pwp_dispatch = __conn_pwp_dispatch
+            }), NULL);
+
+    void* db = bt_piecedb_new();
+    void* pm = f2p_new(db, 10);
+    of_conn_set_piece_mapper(c, pm);
+
+    char* file_name = "testing/123.txt";
+    CuAssertTrue(tc, !f2p_get_file_from_path(pm, file_name));
+
+    /* first, add the file */
+    ptr = msg;
     ptr += sprintf(ptr,
             "l"
             "d"
@@ -165,17 +214,56 @@ void Testof_receives_filelog_adds_piece_range_if_we_dont_have_it(
             "e",
             strlen(file_name), file_name,
             10, /* size */
-            "y", /* is_deleted */
-            2, /* piece_idx */
+            "n", /* is deleted */
+            1, /* piece_idx */
             1 /* mtime */);
     CuAssertTrue(tc, 1 == of_conn_filelog(c, msg, ptr - msg));
-    CuAssertTrue(tc, 2 == f2p_get_nfiles(pm));
-    CuAssertTrue(tc, NULL != f2p_get_file_from_path(pm, file_name));
-    printf("pieces: %d\n", bt_piecedb_count(db)); 
-    CuAssertTrue(tc, 3 == bt_piecedb_count(db));
-    CuAssertTrue(tc, NULL != bt_piecedb_get(db, 0));
-    CuAssertTrue(tc, NULL != bt_piecedb_get(db, 1));
-    CuAssertTrue(tc, NULL != bt_piecedb_get(db, 2));
+    CuAssertTrue(tc, NULL != (f = f2p_get_file_from_path(pm, file_name)));
+    CuAssertTrue(tc, 0 == f->is_deleted);
+
+    /* now remove the file with lower mtime*/
+    ptr = msg;
+    ptr += sprintf(ptr,
+            "l"
+            "d"
+            "4:path%d:%s"
+            "4:sizei%de"
+            "10:is_deleted1:%s"
+            "9:piece_idxi%de"
+            "5:mtimei%de"
+            "e"
+            "e",
+            strlen(file_name), file_name,
+            10, /* size */
+            "y", /* is deleted */
+            1, /* piece_idx */
+            /* lower mtime */
+            0 /* mtime */);
+    CuAssertTrue(tc, 1 == of_conn_filelog(c, msg, ptr - msg));
+    CuAssertTrue(tc, NULL != (f = f2p_get_file_from_path(pm, file_name)));
+    CuAssertTrue(tc, 0 == f->is_deleted);
+
+    /* now remove the file */
+    ptr = msg;
+    ptr += sprintf(ptr,
+            "l"
+            "d"
+            "4:path%d:%s"
+            "4:sizei%de"
+            "10:is_deleted1:%s"
+            "9:piece_idxi%de"
+            "5:mtimei%de"
+            "e"
+            "e",
+            strlen(file_name), file_name,
+            10, /* size */
+            "y", /* is deleted */
+            1, /* piece_idx */
+            /* greater mtime */
+            2 /* mtime */);
+    CuAssertTrue(tc, 1 == of_conn_filelog(c, msg, ptr - msg));
+    CuAssertTrue(tc, NULL != (f = f2p_get_file_from_path(pm, file_name)));
+    CuAssertTrue(tc, 1 == f->is_deleted);
 }
 
 void Testof_receives_piecelog(

@@ -35,7 +35,7 @@ f2p_t* f2p_new(void* piecedb, unsigned int piece_size);
 
 /**
  * Will add required pieces to piece database
- * @return file added */
+ * @return file added; NULL if file already exists */
 void* f2p_file_added(
     f2p_t* me_,
     char* name,

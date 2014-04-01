@@ -72,13 +72,14 @@ void* f2p_file_added(
     f2p_private_t* me = (void*)me_;
     int idx, npieces, i;
 
-    printf("added: %s %dB %d\n", name, size, is_dir);
+    //printf("added: %s %dB %d\n", name, size, is_dir);
 
     file_t* f;
         
     f = f2p_get_file_from_path(me_, name);
 
-    assert(!f);
+    if (f)
+        return NULL;
 
     f = calloc(1, sizeof(file_t));
     f->path = strdup(name);
@@ -90,6 +91,7 @@ void* f2p_file_added(
 
     npieces = __pieces_required(size, me->piece_size);
     idx = bt_piecedb_add(me->piecedb, npieces);
+
     for (i=0; i<npieces; i++)
     {
         void* p = bt_piecedb_get(me->piecedb, idx + i);
@@ -114,7 +116,14 @@ void* f2p_file_removed(
     char* name)
 {
     printf("removed: %s\n", name);
-    return NULL;
+
+    file_t* f;
+
+    if (!(f = f2p_get_file_from_path(me_, name)))
+        return NULL;
+
+    f->is_deleted = 1;
+    return f;
 }
 
 void* f2p_file_changed(
