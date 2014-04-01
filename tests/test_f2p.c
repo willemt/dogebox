@@ -43,3 +43,38 @@ void TestF2P_added_adds_file(
     CuAssertTrue(tc, 0 == strcmp(f->path,"test.txt"));
 }
 
+void TestF2P_pieces_required_for_filesize(
+    CuTest * tc
+)
+{
+    f2p_t *m;
+    file_t *f;
+    void *db;
+
+    db = bt_piecedb_new();
+    m = f2p_new(db, 10);
+    CuAssertTrue(tc, 1 == f2p_pieces_required_for_filesize(m,0));
+    CuAssertTrue(tc, 1 == f2p_pieces_required_for_filesize(m,1));
+    CuAssertTrue(tc, 1 == f2p_pieces_required_for_filesize(m,10));
+    CuAssertTrue(tc, 2 == f2p_pieces_required_for_filesize(m,11));
+    CuAssertTrue(tc, 3 == f2p_pieces_required_for_filesize(m,21));
+}
+
+void TestF2P_added_adds_piece_range(
+    CuTest * tc
+)
+{
+    f2p_t *m;
+    file_t *f;
+    void *db;
+
+    db = bt_piecedb_new();
+    m = f2p_new(db, 10);
+    CuAssertTrue(tc, 0 == bt_piecedb_count(db));
+
+    f2p_file_added(m, "test.txt", 0, 20, 0);
+    CuAssertTrue(tc, 2 == bt_piecedb_count(db));
+    CuAssertTrue(tc, NULL != bt_piecedb_get(db, 0));
+    CuAssertTrue(tc, NULL != bt_piecedb_get(db, 1));
+}
+

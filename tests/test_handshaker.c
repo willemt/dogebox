@@ -17,6 +17,7 @@ static char* __mock_infohash = "abcdef12345678900000";
 static char* __mock_their_peer_id = "00000000000000000000";
 static char* __mock_my_peer_id = "00000000000000000001";
 
+/* HS02 */
 void Testof_handshake_disconnect_if_handshake_has_invalid_name_length(
     CuTest * tc
 )
@@ -37,6 +38,7 @@ void Testof_handshake_disconnect_if_handshake_has_invalid_name_length(
     CuAssertTrue(tc, -1 == ret);
 }
 
+/* HS03 */
 void Testof_handshake_disconnect_if_handshake_has_invalid_protocol_name(
     CuTest * tc
 )
@@ -58,6 +60,7 @@ void Testof_handshake_disconnect_if_handshake_has_invalid_protocol_name(
     CuAssertTrue(tc, -1 == ret);
 }
 
+/* HS01 */
 void Testof_handshake_success_from_good_handshake(
     CuTest * tc
 )

@@ -50,10 +50,16 @@ f2p_t* f2p_new(void* piecedb, unsigned int piece_size)
 static unsigned int __pieces_required(
         unsigned int size, unsigned int piece_size)
 {
-    if (size < piece_size)
+    if (0 == size)
         return 1;
-    else
-        return piece_size / size + (0 != (size % piece_size) ? 1 : 0);
+
+    return (size / piece_size) + (0 == size % piece_size ? 0 : 1);
+}
+
+unsigned int f2p_pieces_required_for_filesize(f2p_t* me_, unsigned int size)
+{
+    f2p_private_t* me = (void*)me_;
+    return __pieces_required(size, me->piece_size);
 }
 
 void* f2p_file_added(

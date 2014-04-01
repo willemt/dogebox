@@ -77,4 +77,8 @@ int f2p_get_file_from_path_len(f2p_t* me_,
  * @return number of files */
 int f2p_get_nfiles(f2p_t* me_);
 
+/**
+ * @return number of pieces required for file of this size */
+unsigned int f2p_pieces_required_for_filesize(f2p_t* me_, unsigned int size);
+
 #endif /* FILE2PIECE_MAPPER_H_ */

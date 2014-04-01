@@ -4,7 +4,7 @@ The dogebox protocol (DBP) is a variant of the Bittorrent peer wire protocol.
 
 DBP has files mapped to Bittorrent pieces. DBP uses the Bittorrent protocol to transfer these pieces between peers. The key difference between the vanilla Bittorrent protocol and DBP, is that DBP provides extended Bittorrent PWP messages which allow the mapping, re-mapping, and un-mapping of pieces and files.
 
-Even though DBP is simply just the addition of piece mapping features to the Bittorrent protocol, there are some extra complexities involved. This protocol document describes the DBP protocol, how the piece mapping works, and how complexity is managed.
+Even though DBP is simply just the addition of piece mapping features to the Bittorrent protocol, there are some extra complexities involved. This document describes the DBP protocol, how the piece mapping works, and how complexity is managed.
 
 Table of contents
 =================
@@ -54,8 +54,6 @@ File Log
     +-----------------+-----------+---------------------------------------+
     | piece_idx       | uint32    | Starting piece index of the file      |
     +-----------------+-----------+---------------------------------------+
-    | pieces          | uint32    | Number of pieces used by this file    |
-    +-----------------+-----------+---------------------------------------+
     | mtime           | uint32    | Last modified time of file meta data  |
     +-----------------+-----------+---------------------------------------+
     | utime           | uint32    | The time at which the client detected |
@@ -65,7 +63,7 @@ File Log
     |                 |           | "n" otherwise                         |
     +-----------------+-----------+---------------------------------------+
 
-Together, "piece_idx" and "pieces" make up the file's piece range.
+Together, "piece_idx" and "size" make up the file's piece range.
 
 Piece Log
 ---------
@@ -145,8 +143,13 @@ Handshake messages are sent at the beginning of the connection.
 
 When receiving this message, we: 
 
-    - if handshake is valid, reply with handshake, and send our piece and file log
-    - if handshake is invalid, drop the connection
+    - (HS01) if handshake is valid, reply with handshake, and send our piece and file log
+
+    - if handshake is invalid, drop the connection. Invalid handshakes:
+
+      - (HS02) have an invalid name length; and/or
+
+      - (HS03) have an unexpected protocol name
 
 **highest_piece**
 *This is required within the handshake so that clients are able to construct a Merkle hash. For a Merkle hash it is necessary that we know how many pieces there could be.*
@@ -165,20 +168,20 @@ File log messages have the following message format:
     | filelog        | string    |  N/A | Section 1 described bencoded string   |
     +----------------+-----------+----------------------------------------------+
 
-When receiving this message we: 
+When receiving this message we process each file dictionary within the bencoded string, and: 
 
-    - if we don't have a file that has the same path, add the file to our
-      database and create the file in our local directory,
+    - (FL01) if we don't have a file that has the same path, we add the file to our
+      database and create the file in our local directory
 
-    - if we don't have pieces that match the piece range, we add the piece range
+    - (FL02) if we don't have pieces that match the piece range, we add the piece range
       to our database
 
-    - if we don't have pieces that match the piece range, and the piece range 
+    - (FL03) if we don't have pieces that match the piece range, and the piece range 
       conflicts with one of our piece ranges, we re-map our conflicting piece(s)
       piece ranges and enque the re-mapped file to be sent in the file log
       subset mentioned below. We then add the new piece range to our database
 
-    - if a file's mtime is less than ours, we ignore the file and enqueue the
+    - (FL04) if a file's mtime is less than ours, we ignore the file and enqueue the
       file info from our database to be sent to the peer. After we've processed
       the whole file log we send a subset of our piece log (see below).
 
@@ -213,12 +216,12 @@ When receiving this message, we:
     - (PL02) update our database with this piece's info. If a pieces's mtime is higher
       than ours. See below paragraph for how the replacement works
 
-    - we ignore the piece and enque the piece info from our database to be sent
-      to the peer, if a pieces's mtime is less than ours, 
+    - (PL03) we ignore the piece and enque the piece info from our database to be sent
+      to the peer, if a pieces's mtime is less than ours
 
 When we replace our piece info with a newer piece info:
 
-    - if we had a complete version of the piece before the update, send a
+    - (PL04) if we had a complete version of the piece before the update, send a
       DONTHAVE message to all our peers. The updated piece index is the
       argument for the message *(We do this to prevent peers from assuming we
       have the most recent piece data)*
