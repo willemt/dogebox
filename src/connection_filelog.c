@@ -137,7 +137,7 @@ int connection_fl_dict_leave(bencode_t *s, const char *dict_key)
 //            f2p_file_remap(me->pm, b->path, b->piece_start, b->npieces);
         }
 
-        if (a->piece_start != b->piece_start)// || a->npieces != b->npieces)
+        if (a->piece_start != b->piece_start)
         {
             f2p_file_remap(me->pm, a->path, b->piece_start);//, b->npieces);
         }

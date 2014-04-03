@@ -8,13 +8,28 @@
 #include "file2piece_mapper.h"
 #include "linked_list_hashmap.h"
 
+#include "linked_list_queue.h"
+
 #include "bt.h"
 #include "bt_piece_db.h"
+
+typedef struct piecerange_s piecerange_t;
+
+struct piecerange_s {
+    int idx;
+    int npieces;
+    piecerange_t *prev, *next;
+    file_t *f;
+};
 
 typedef struct {
     hashmap_t *files;
     void* piecedb;
     unsigned int piece_size;
+
+    /* TODO: replace with skip list */
+    /* linked list of piece ranges */
+    piecerange_t* prange;
 } f2p_private_t;
 
 /**
@@ -62,6 +77,44 @@ unsigned int f2p_pieces_required_for_filesize(f2p_t* me_, unsigned int size)
     return __pieces_required(size, me->piece_size);
 }
 
+static void __add_piecerange(f2p_private_t* me, piecerange_t* n)
+{
+    if (!me->prange || n->idx < me->prange->idx)
+    {
+        n->next = me->prange;
+        n->prev = NULL;
+        me->prange = n;
+        if (n->next)
+            n->next->prev = n;
+        return;
+    }
+
+    piecerange_t* p;
+
+    for (p = me->prange; p; p = p->next)
+    {
+        piecerange_t* o = p->next;
+
+        if (!o || n->idx < o->idx)
+            break;
+    }
+
+    n->next = p->next;
+    n->prev = p;
+    p->next = n;
+    if (n->next)
+        n->next->prev = n;
+}
+
+piecerange_t* __new_piecerange(int idx, int npieces, file_t* f)
+{
+    piecerange_t* pr = malloc(sizeof(piecerange_t));
+    pr->idx = idx;
+    pr->npieces = npieces;
+    pr->f = f;
+    return pr;
+}
+
 void* f2p_file_added(
     f2p_t* me_,
     char* name,
@@ -91,6 +144,9 @@ void* f2p_file_added(
 
     npieces = __pieces_required(size, me->piece_size);
     idx = bt_piecedb_add(me->piecedb, npieces);
+
+    piecerange_t* pr = __new_piecerange(idx,npieces,f);
+    __add_piecerange(me,pr);
 
     for (i=0; i<npieces; i++)
     {
@@ -166,10 +222,46 @@ void* f2p_file_remap(
 
     int npieces = __pieces_required(f->size, me->piece_size);
 
+    piecerange_t* pr;
+    linked_list_queue_t *removals = llqueue_new();
+
+    printf("remapping: %d\n", piece_idx);
+    
+    //for (pr = NULL, (pr = __get_next_piecerange(me, pr->next, piece_idx, npieces));)
+    for (pr = me->prange; pr && pr->idx < piece_idx + npieces; pr = pr->next)
+    {
+        //__remove_piecerange(me, pr);
+        /* remove piece range */
+        if (pr->prev)
+            pr->prev->next = pr->next;
+        else me->prange = NULL;
+        if (pr->next)
+            pr->next->prev = pr->prev;
+
+        int new_idx = bt_piecedb_add(me->piecedb, pr->npieces);
+        piecerange_t* n = __new_piecerange(new_idx, pr->npieces, f);
+        __add_piecerange(me, pr);
+    }
+
+    while (0 < llqueue_count(removals))
+    {
+        pr = llqueue_poll(removals);
+
+        int i;
+        for (i=pr->idx; i < pr->idx + pr->npieces; i++)
+            bt_piecedb_remove(me->piecedb, i);
+
+        free(pr);
+    }
+
+    llqueue_free(removals);
+
+#if 0
     if (bt_piecedb_get(me->piecedb, piece_idx))
     {
         
     }
+#endif
 
     return 0;
 }
