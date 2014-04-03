@@ -114,3 +114,36 @@ void TestF2P_added_adds_piece_range(
     CuAssertTrue(tc, NULL != bt_piecedb_get(db, 1));
 }
 
+void TestF2P_remap_cant_remap_non_existant_file(CuTest * tc)
+{
+    f2p_t *m;
+    file_t *f;
+    void *db;
+
+    db = bt_piecedb_new();
+    m = f2p_new(db, 10);
+    CuAssertTrue(tc, NULL == f2p_file_remap(m, "test.txt", 1));
+}
+
+void TestF2P_remap_remaps(CuTest * tc)
+{
+    f2p_t *m;
+    file_t *f;
+    void *db;
+
+    db = bt_piecedb_new();
+    m = f2p_new(db, 10);
+    CuAssertTrue(tc, 0 == bt_piecedb_count(db));
+
+    f2p_file_added(m, "test.txt", 0, 10, 0);
+    CuAssertTrue(tc, 1 == bt_piecedb_count(db));
+    CuAssertTrue(tc, NULL != bt_piecedb_get(db, 0));
+    CuAssertTrue(tc, NULL == bt_piecedb_get(db, 1));
+
+    f2p_file_remap(m, "test.txt", 1);
+    CuAssertTrue(tc, 1 == bt_piecedb_count(db));
+    CuAssertTrue(tc, NULL == bt_piecedb_get(db, 0));
+    CuAssertTrue(tc, NULL != bt_piecedb_get(db, 1));
+}
+
+

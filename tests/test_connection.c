@@ -266,6 +266,101 @@ void Testof_receives_filelog_deletes_file(
     CuAssertTrue(tc, 1 == f->is_deleted);
 }
 
+/* FL06 */
+void Testof_receives_filelog_but_piece_range_conflicts(
+    CuTest * tc
+)
+{
+    void *hs;
+    unsigned char msg[1000], *ptr = msg, *m = msg;
+    unsigned int ii, ret, len;
+
+    file_t* f;
+
+    of_conn_t* c;
+
+    c = of_conn_new(
+            &((of_conn_cb_t){
+            .conn_pwp_dispatch = __conn_pwp_dispatch
+            }), NULL);
+
+    void* db = bt_piecedb_new();
+    void* pm = f2p_new(db, 10);
+    of_conn_set_piece_mapper(c, pm);
+
+    char* file_name = malloc(100);
+    CuAssertTrue(tc, !f2p_get_file_from_path(pm, file_name));
+
+    /* first, add the file */
+    ptr = msg;
+    sprintf(file_name,"testing/a.txt");
+    ptr += sprintf(ptr,
+            "l"
+            "d"
+            "4:path%d:%s"
+            "4:sizei%de"
+            "10:is_deleted1:%s"
+            "9:piece_idxi%de"
+            "5:mtimei%de"
+            "e"
+            "e",
+            strlen(file_name), file_name,
+            10, /* size */
+            "n", /* is deleted */
+            0, /* piece_idx */
+            1 /* mtime */);
+    CuAssertTrue(tc, 1 == of_conn_filelog(c, msg, ptr - msg));
+
+    /* add b */
+    ptr = msg;
+    sprintf(file_name,"testing/b.txt");
+    ptr += sprintf(ptr,
+            "l"
+            "d"
+            "4:path%d:%s"
+            "4:sizei%de"
+            "10:is_deleted1:%s"
+            "9:piece_idxi%de"
+            "5:mtimei%de"
+            "e"
+            "e",
+            strlen(file_name), file_name,
+            10, /* size */
+            "n", /* is deleted */
+            1, /* piece_idx */
+            1 /* mtime */);
+    CuAssertTrue(tc, 1 == of_conn_filelog(c, msg, ptr - msg));
+
+    /* now add c, it is ontop of both a and b */
+    ptr = msg;
+    sprintf(file_name,"testing/c.txt");
+    ptr += sprintf(ptr,
+            "l"
+            "d"
+            "4:path%d:%s"
+            "4:sizei%de"
+            "10:is_deleted1:%s"
+            "9:piece_idxi%de"
+            "5:mtimei%de"
+            "e"
+            "e",
+            strlen(file_name), file_name,
+            /* size covers two pieces */
+            20, /* size */
+            "n", /* is deleted */
+            0, /* piece_idx */
+            1 /* mtime */);
+    CuAssertTrue(tc, 1 == of_conn_filelog(c, msg, ptr - msg));
+    CuAssertTrue(tc, NULL != (f = f2p_get_file_from_path(pm, file_name)));
+    CuAssertTrue(tc, 0 == f->piece_start);
+
+    CuAssertTrue(tc, NULL != (f = f2p_get_file_from_path(pm, "testing/a.txt")));
+    CuAssertTrue(tc, 2 == f->piece_start);
+
+    CuAssertTrue(tc, NULL != (f = f2p_get_file_from_path(pm, "testing/b.txt")));
+    CuAssertTrue(tc, 3 == f->piece_start);
+}
+
 void Testof_receives_piecelog(
     CuTest * tc
 )

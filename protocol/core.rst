@@ -218,11 +218,12 @@ string, and:
      - if we don't have pieces that match the piece range, we add the piece
        range to our database (FL02)
 
-     - if we don't have pieces that match the piece range, and the piece range
-       conflicts with one of our piece ranges, we re-map our conflicting
-       piece(s) piece ranges and enque the re-mapped file to be sent in the
-       file log subset mentioned below. We then add the new piece range to our
-       database (FL03)
+     - when our piece range is different from the file log:
+       
+      - if the piece range conflicts with our file(s)' piece ranges, we re-map our
+        conflicting file(s)' piece ranges and enque the re-mapped file(s) to be
+        sent in the file log subset mentioned below (FL06). We then add the new piece
+        range to our database (FL03)
 
      - if the file has a "is_deleted" flag set to "y", we delete the file and
        set our "is_deleted" flag to "y" (FL05) 
@@ -250,23 +251,22 @@ Piece log messages have the following message format:
 
 When receiving this message, we: 
 
-    - (PL01) if we don't have a piece that has the same index in our database,
-      we disconnect *(This is because the file log creates the pieces we
-      require.  If the Piece Log indicates wer need to add pieces, this is most
-      likely a processing error)*
+ - (PL01) if we don't have a piece that has the same index in our database, we
+   disconnect *(This is because the file log creates the pieces we require.  If
+   the Piece Log indicates we need to add pieces, this is most likely a processing error)*
 
-    - (PL02) update our database with this piece's info. If a pieces's mtime is
-      higher than ours. See below paragraph for how the replacement works
+ - (PL02) update our database with this piece's info. If a pieces's mtime is
+   higher than ours. See below paragraph for how the replacement works
 
-    - (PL03) we ignore the piece and enque the piece info from our database to
-      be sent to the peer, if a pieces's mtime is less than ours
+ - (PL03) we ignore the piece and enque the piece info from our database to be
+   sent to the peer, if a pieces's mtime is less than ours
 
 When we replace our piece info with a newer piece info:
 
-    - (PL04) if we had a complete version of the piece before the update, send a
-      DONTHAVE message to all our peers. The updated piece index is the
-      argument for the message *(We do this to prevent peers from assuming we
-      have the most recent piece data)*
+ - (PL04) if we had a complete version of the piece before the update, send a
+   DONTHAVE message to all our peers. The updated piece index is the argument
+   for the message *(We do this to prevent peers from assuming we have the most
+   recent piece data)*
 
 **Piece Log subset**
 This subset consists of pieces:

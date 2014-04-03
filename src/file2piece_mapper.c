@@ -153,12 +153,23 @@ file_t* f2p_iter_next(f2p_file_iter_t* iter)
 }
 #endif
 
-int f2p_file_remap(
+void* f2p_file_remap(
     f2p_t* me_,
     char* name,
-    unsigned int piece_idx,
-    unsigned long pieces)
+    unsigned int piece_idx)
 {
+    f2p_private_t* me = (void*)me_;
+    file_t* f;
+        
+    if (!(f = f2p_get_file_from_path(me_, name)))
+        return NULL;
+
+    int npieces = __pieces_required(f->size, me->piece_size);
+
+    if (bt_piecedb_get(me->piecedb, piece_idx))
+    {
+        
+    }
 
     return 0;
 }

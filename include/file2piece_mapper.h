@@ -59,8 +59,8 @@ void* f2p_file_moved(
 
 /**
  * @return file changed */
-void* e2p_file_remap(
-    f2p_t* me_, char* name, unsigned int piece_idx, unsigned long pieces);
+void* f2p_file_remap(
+    f2p_t* me_, char* name, unsigned int piece_idx);
 
 /**
  * @return hashmap of files */
