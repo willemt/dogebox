@@ -44,6 +44,22 @@ void TestF2P_added_adds_file(
     CuAssertTrue(tc, 1 == f2p_get_nfiles(m));
 }
 
+void TestF2P_get_files_from_piece_idx(
+    CuTest * tc
+)
+{
+    f2p_t *m;
+    file_t *a, *b;
+    void *db;
+
+    db = bt_piecedb_new();
+    m = f2p_new(db, 10);
+    a = f2p_file_added(m, "a.txt", 0, 5, 0);
+    b = f2p_file_added(m, "b.txt", 0, 5, 0);
+    CuAssertTrue(tc, a == f2p_get_files_from_piece_idx(db, 1));
+    CuAssertTrue(tc, b == f2p_get_files_from_piece_idx(db, 0));
+}
+
 void TestF2P_added_adds_two_files(
     CuTest * tc
 )
@@ -62,6 +78,7 @@ void TestF2P_added_adds_two_files(
     CuAssertTrue(tc, 0 == strcmp(f->path,"test2.txt"));
     CuAssertTrue(tc, 2 == f2p_get_nfiles(m));
 }
+
 
 void TestF2P_added_cant_add_file_twice(
     CuTest * tc
@@ -146,4 +163,29 @@ void TestF2P_remap_remaps(CuTest * tc)
     CuAssertTrue(tc, NULL != bt_piecedb_get(db, 1));
 }
 
+void TestF2P_remap_resolves_conflicts_by_taken_over_idx(CuTest * tc)
+{
+    f2p_t *m;
+    file_t *a, *b;
+    void *db;
+
+    db = bt_piecedb_new();
+    m = f2p_new(db, 10);
+    CuAssertTrue(tc, 0 == bt_piecedb_count(db));
+
+    a = f2p_file_added(m, "a.txt", 0, 10, 0);
+    b = f2p_file_added(m, "b.txt", 0, 10, 0);
+    CuAssertTrue(tc, 2 == bt_piecedb_count(db));
+    CuAssertTrue(tc, NULL != bt_piecedb_get(db, 0));
+    CuAssertTrue(tc, NULL != bt_piecedb_get(db, 1));
+    CuAssertTrue(tc, a == f2p_get_files_from_piece_idx(db, 0));
+    CuAssertTrue(tc, b == f2p_get_files_from_piece_idx(db, 1));
+
+    f2p_file_remap(m, "b.txt", 0);
+    CuAssertTrue(tc, 2 == bt_piecedb_count(db));
+    CuAssertTrue(tc, NULL != bt_piecedb_get(db, 0));
+    CuAssertTrue(tc, NULL != bt_piecedb_get(db, 1));
+    CuAssertTrue(tc, a == f2p_get_files_from_piece_idx(db, 1));
+    CuAssertTrue(tc, b == f2p_get_files_from_piece_idx(db, 0));
+}
 

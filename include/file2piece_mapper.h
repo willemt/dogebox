@@ -81,4 +81,6 @@ int f2p_get_nfiles(f2p_t* me_);
  * @return number of pieces required for file of this size */
 unsigned int f2p_pieces_required_for_filesize(f2p_t* me_, unsigned int size);
 
+void* f2p_get_files_from_piece_idx(f2p_t* me_, int idx);
+
 #endif /* FILE2PIECE_MAPPER_H_ */

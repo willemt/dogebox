@@ -209,10 +209,19 @@ file_t* f2p_iter_next(f2p_file_iter_t* iter)
 }
 #endif
 
+static void __remove_piecerange(f2p_private_t* me, piecerange_t* pr)
+{
+    if (pr->prev)
+        pr->prev->next = pr->next;
+    else me->prange = NULL;
+    if (pr->next)
+        pr->next->prev = pr->prev;
+}
+
 void* f2p_file_remap(
     f2p_t* me_,
     char* name,
-    unsigned int piece_idx)
+    unsigned int idx)
 {
     f2p_private_t* me = (void*)me_;
     file_t* f;
@@ -225,22 +234,13 @@ void* f2p_file_remap(
     piecerange_t* pr;
     linked_list_queue_t *removals = llqueue_new();
 
-    printf("remapping: %d\n", piece_idx);
-    
-    //for (pr = NULL, (pr = __get_next_piecerange(me, pr->next, piece_idx, npieces));)
-    for (pr = me->prange; pr && pr->idx < piece_idx + npieces; pr = pr->next)
+    for (pr = me->prange; pr && pr->idx < idx + npieces; pr = pr->next)
     {
-        //__remove_piecerange(me, pr);
-        /* remove piece range */
-        if (pr->prev)
-            pr->prev->next = pr->next;
-        else me->prange = NULL;
-        if (pr->next)
-            pr->next->prev = pr->prev;
-
+        __remove_piecerange(me, pr);
         int new_idx = bt_piecedb_add(me->piecedb, pr->npieces);
         piecerange_t* n = __new_piecerange(new_idx, pr->npieces, f);
-        __add_piecerange(me, pr);
+        __add_piecerange(me, n);
+        llqueue_offer(removals, pr);
     }
 
     while (0 < llqueue_count(removals))
@@ -254,10 +254,13 @@ void* f2p_file_remap(
         free(pr);
     }
 
+    int new_idx = bt_piecedb_add(me->piecedb, npieces);
+    assert(new_idx == idx);
+
     llqueue_free(removals);
 
 #if 0
-    if (bt_piecedb_get(me->piecedb, piece_idx))
+    if (bt_piecedb_get(me->piecedb, idx))
     {
         
     }
@@ -277,6 +280,22 @@ void* f2p_get_file_from_path(f2p_t* me_, const char* path)
     f2p_private_t* me = (void*)me_;
 
     return hashmap_get(me->files, path);
+}
+
+void* f2p_get_files_from_piece_idx(f2p_t* me_, int idx)
+{
+    f2p_private_t* me = (void*)me_;
+    file_t* f;
+    piecerange_t* p;
+
+    for (p = me->prange;
+            p && idx < p->idx && p->idx + p->npieces < idx;
+            p = p->next);
+
+    if (!p || idx < p->idx || p->idx + p->npieces < idx)
+        return NULL;
+
+    return p->f;
 }
 
 int f2p_get_nfiles(f2p_t* me_)
