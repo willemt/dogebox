@@ -26,7 +26,7 @@ typedef struct file_s {
     /* piece index */
     int piece_start;
     /* number of pieces */
-    int npieces;
+    //int npieces;
 
     int is_deleted;
 } file_t;

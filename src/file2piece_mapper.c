@@ -209,55 +209,64 @@ file_t* f2p_iter_next(f2p_file_iter_t* iter)
 }
 #endif
 
-static void __remove_piecerange(f2p_private_t* me, piecerange_t* pr)
+static piecerange_t* __remove_piecerange(f2p_private_t* me, piecerange_t* pr)
 {
     if (pr->prev)
         pr->prev->next = pr->next;
     else me->prange = NULL;
     if (pr->next)
         pr->next->prev = pr->prev;
+    return pr;
 }
 
 void* f2p_file_remap(
     f2p_t* me_,
     char* name,
-    unsigned int idx)
+    const unsigned int idx)
 {
     f2p_private_t* me = (void*)me_;
     file_t* f;
+    int i;
         
     if (!(f = f2p_get_file_from_path(me_, name)))
         return NULL;
 
+    piecerange_t* p;
     int npieces = __pieces_required(f->size, me->piece_size);
+    for (p = me->prange; p; p = p->next)
+    {
+        if (p->f == f)
+            free(__remove_piecerange(me, p));
+    }
+    for (i=f->piece_start; i<f->piece_start + npieces; i++)
+    {
+        bt_piecedb_remove(me->piecedb, i);
+    }
 
-    piecerange_t* pr;
     linked_list_queue_t *removals = llqueue_new();
-
-    for (pr = me->prange; pr && pr->idx < idx + npieces; pr = pr->next)
+    for (p = me->prange; p; p = p->next)
     {
-        __remove_piecerange(me, pr);
-        int new_idx = bt_piecedb_add(me->piecedb, pr->npieces);
-        piecerange_t* n = __new_piecerange(new_idx, pr->npieces, f);
-        __add_piecerange(me, n);
-        llqueue_offer(removals, pr);
+        if (p->idx <= idx + npieces && idx <= p->idx + p->npieces)
+        {
+            __remove_piecerange(me, p);
+            int new_idx = bt_piecedb_add(me->piecedb, p->npieces);
+            __add_piecerange(me, __new_piecerange(new_idx, p->npieces, f));
+            llqueue_offer(removals, p);
+        }
     }
 
-    while (0 < llqueue_count(removals))
+    while ((p = llqueue_poll(removals)))
     {
-        pr = llqueue_poll(removals);
-
-        int i;
-        for (i=pr->idx; i < pr->idx + pr->npieces; i++)
+        for (i=p->idx; i < p->idx + p->npieces; i++)
             bt_piecedb_remove(me->piecedb, i);
-
-        free(pr);
+        free(p);
     }
+    llqueue_free(removals);
 
-    int new_idx = bt_piecedb_add(me->piecedb, npieces);
+    int new_idx = bt_piecedb_add_at_idx(me->piecedb, npieces, idx);
+    __add_piecerange(me, __new_piecerange(idx, npieces, f));
     assert(new_idx == idx);
 
-    llqueue_free(removals);
 
 #if 0
     if (bt_piecedb_get(me->piecedb, idx))

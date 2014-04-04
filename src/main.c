@@ -302,12 +302,11 @@ static void __handshake_success(
                 "4:sizei%de"
                 "10:is_deleted1:n"
                 "9:piece_idxi%de"
-                "6:piecesi%de"
                 "5:mtimei%de"
                 "e"
                 "e",
                 strlen(f->path), f->path,
-                f->size, f->piece_start, f->npieces, f->mtime);
+                f->size, f->piece_start, f->mtime);
 
         bitstream_write_uint32(&ptr, fe(1 + strlen(bencode)));
         bitstream_write_ubyte(&ptr, OF_MSGTYPE_FILELOG);
