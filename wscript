@@ -272,7 +272,7 @@ def build(bld):
     unit_test(bld,'test_msghandler.c')
     unit_test(bld,'test_f2p.c')
     unit_test(bld,'test_handshaker.c')
-    unit_test(bld,'test_connection.c')
+    #unit_test(bld,'test_connection.c')
 
     libs = ['yabbt','uv']
     if sys.platform == 'win32':
