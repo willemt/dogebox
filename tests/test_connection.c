@@ -291,7 +291,7 @@ void Testof_receives_filelog_but_piece_range_conflicts(
     char* file_name = malloc(100);
     CuAssertTrue(tc, !f2p_get_file_from_path(pm, file_name));
 
-    /* first, add the file */
+    /* add a */
     ptr = msg;
     sprintf(file_name,"testing/a.txt");
     ptr += sprintf(ptr,
@@ -349,12 +349,14 @@ void Testof_receives_filelog_but_piece_range_conflicts(
             20, /* size */
             "n", /* is deleted */
             0, /* piece_idx */
-            1 /* mtime */);
+            /* newer mtime */
+            2 /* mtime */);
     CuAssertTrue(tc, 1 == of_conn_filelog(c, msg, ptr - msg));
-    CuAssertTrue(tc, NULL != (f = f2p_get_file_from_path(pm, file_name)));
+    CuAssertTrue(tc, NULL != (f = f2p_get_file_from_path(pm, "testing/c.txt")));
     CuAssertTrue(tc, 0 == f->piece_start);
 
     CuAssertTrue(tc, NULL != (f = f2p_get_file_from_path(pm, "testing/a.txt")));
+    printf("a.txt: %d\n", f->piece_start);
     CuAssertTrue(tc, 2 == f->piece_start);
 
     CuAssertTrue(tc, NULL != (f = f2p_get_file_from_path(pm, "testing/b.txt")));

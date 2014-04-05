@@ -24,7 +24,7 @@ struct piecerange_s {
 
 typedef struct {
     hashmap_t *files;
-    void* piecedb;
+    void* pdb;
     unsigned int piece_size;
 
     /* TODO: replace with skip list */
@@ -52,12 +52,12 @@ static long __file_compare(const void *obj, const void *other)
     return strcmp(f1, f2);
 }
 
-f2p_t* f2p_new(void* piecedb, unsigned int piece_size)
+f2p_t* f2p_new(void* pdb, unsigned int piece_size)
 {
     f2p_private_t* me;
     me = calloc(1,sizeof(f2p_private_t));
     me->files = hashmap_new(__file_hash, __file_compare, 11);
-    me->piecedb = piecedb;
+    me->pdb = pdb;
     me->piece_size = piece_size;
     return (f2p_t*)me;
 }
@@ -120,7 +120,8 @@ void* f2p_file_added(
     char* name,
     int is_dir,
     unsigned int size,
-    unsigned long mtime)
+    unsigned long mtime,
+    int piece_idx)
 {
     f2p_private_t* me = (void*)me_;
     int idx, npieces, i;
@@ -129,9 +130,7 @@ void* f2p_file_added(
 
     file_t* f;
         
-    f = f2p_get_file_from_path(me_, name);
-
-    if (f)
+    if ((f = f2p_get_file_from_path(me_, name)))
         return NULL;
 
     f = calloc(1, sizeof(file_t));
@@ -143,20 +142,26 @@ void* f2p_file_added(
     hashmap_put(me->files, f->path, f);
 
     npieces = __pieces_required(size, me->piece_size);
-    idx = bt_piecedb_add(me->piecedb, npieces);
+    idx = bt_piecedb_add(me->pdb, npieces);
+
+    if (-1 != piece_idx)
+    {
+        f2p_file_remap(me_,f->path,piece_idx);
+        idx = piece_idx;
+    }
 
     piecerange_t* pr = __new_piecerange(idx,npieces,f);
     __add_piecerange(me,pr);
 
     for (i=0; i<npieces; i++)
     {
-        void* p = bt_piecedb_get(me->piecedb, idx + i);
+        void* p = bt_piecedb_get(me->pdb, idx + i);
         int piece_size = me->piece_size;
         char hash[20];
 
         /* last piece has special size */
         if (i == npieces - 1)
-            piece_size = size < me->piece_size ? size : size % me->piece_size; 
+            piece_size = size < me->piece_size ? size : size % me->piece_size;
         bt_piece_set_size(p, piece_size);
         bt_piece_calculate_hash(p, hash);
         bt_piece_set_hash(p, hash);
@@ -219,6 +224,32 @@ static piecerange_t* __remove_piecerange(f2p_private_t* me, piecerange_t* pr)
     return pr;
 }
 
+static void __makespace_for_idx(f2p_private_t* me, int idx, int npieces)
+{
+    piecerange_t* p;
+    linked_list_queue_t *removals = llqueue_new();
+    for (p = me->prange; p; p = p->next)
+    {
+        if (p->idx <= idx + npieces && idx <= p->idx + p->npieces)
+        {
+            llqueue_offer(removals, __remove_piecerange(me, p));
+            int new_idx = bt_piecedb_add(me->pdb, p->npieces);
+            p->f->piece_start = new_idx;
+            printf("new piece %d\n", new_idx);
+            __add_piecerange(me, __new_piecerange(new_idx, p->npieces, p->f));
+        }
+    }
+
+    while ((p = llqueue_poll(removals)))
+    {
+        int i;
+        for (i=p->idx; i < p->idx + p->npieces; i++)
+            bt_piecedb_remove(me->pdb, i);
+        free(p);
+    }
+    llqueue_free(removals);
+}
+
 void* f2p_file_remap(
     f2p_t* me_,
     char* name,
@@ -232,44 +263,31 @@ void* f2p_file_remap(
         return NULL;
 
     piecerange_t* p;
-    int npieces = __pieces_required(f->size, me->piece_size);
-    for (p = me->prange; p; p = p->next)
+    for (p = me->prange; p;)
     {
+        void* next = p->next;
         if (p->f == f)
+        {
             free(__remove_piecerange(me, p));
+        }
+        p = next;
     }
+
+    int npieces = __pieces_required(f->size, me->piece_size);
     for (i=f->piece_start; i<f->piece_start + npieces; i++)
     {
-        bt_piecedb_remove(me->piecedb, i);
+        bt_piecedb_remove(me->pdb, i);
     }
 
-    linked_list_queue_t *removals = llqueue_new();
-    for (p = me->prange; p; p = p->next)
-    {
-        if (p->idx <= idx + npieces && idx <= p->idx + p->npieces)
-        {
-            __remove_piecerange(me, p);
-            int new_idx = bt_piecedb_add(me->piecedb, p->npieces);
-            __add_piecerange(me, __new_piecerange(new_idx, p->npieces, f));
-            llqueue_offer(removals, p);
-        }
-    }
+    __makespace_for_idx(me, idx, npieces);
 
-    while ((p = llqueue_poll(removals)))
-    {
-        for (i=p->idx; i < p->idx + p->npieces; i++)
-            bt_piecedb_remove(me->piecedb, i);
-        free(p);
-    }
-    llqueue_free(removals);
-
-    int new_idx = bt_piecedb_add_at_idx(me->piecedb, npieces, idx);
+    int new_idx = bt_piecedb_add_at_idx(me->pdb, npieces, idx);
     __add_piecerange(me, __new_piecerange(idx, npieces, f));
+    f->piece_start = new_idx;
     assert(new_idx == idx);
 
-
 #if 0
-    if (bt_piecedb_get(me->piecedb, idx))
+    if (bt_piecedb_get(me->pdb, idx))
     {
         
     }
@@ -291,20 +309,38 @@ void* f2p_get_file_from_path(f2p_t* me_, const char* path)
     return hashmap_get(me->files, path);
 }
 
-void* f2p_get_files_from_piece_idx(f2p_t* me_, int idx)
+void* f2p_get_files_from_piece_range(f2p_t* me_, int idx, int npieces)
 {
     f2p_private_t* me = (void*)me_;
     file_t* f;
     piecerange_t* p;
 
-    for (p = me->prange;
-            p && idx < p->idx && p->idx + p->npieces < idx;
-            p = p->next);
+//  p && idx < p->idx && p->idx + p->npieces < idx;
+    for (p = me->prange; p; p = p->next)
+    {
+        if (p->idx <= idx + npieces && idx <= p->idx + p->npieces)
+            return p->f;
+    }
 
-    if (!p || idx < p->idx || p->idx + p->npieces < idx)
-        return NULL;
+    return NULL;
 
-    return p->f;
+//    if (!p || idx < p->idx || p->idx + p->npieces < idx)
+//        return NULL;
+//    return p->f;
+}
+
+void* f2p_get_files_from_piece_idx(f2p_t* me_, int idx)
+{
+    return f2p_get_files_from_piece_range(me_, idx, 1);
+}
+
+void* f2p_get_files_from_piece_idx_and_size(f2p_t* me_, int idx, int size)
+{
+    f2p_private_t* me = (void*)me_;
+    int npieces;
+
+    npieces = __pieces_required(size, me->piece_size);
+    return f2p_get_files_from_piece_range(me_, idx, npieces);
 }
 
 int f2p_get_nfiles(f2p_t* me_)

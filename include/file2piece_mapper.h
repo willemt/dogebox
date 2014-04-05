@@ -35,13 +35,15 @@ f2p_t* f2p_new(void* piecedb, unsigned int piece_size);
 
 /**
  * Will add required pieces to piece database
+ * @param piece_idx Piece idx for the file. If -1 we assign a random piece idx
  * @return file added; NULL if file already exists */
 void* f2p_file_added(
     f2p_t* me_,
     char* name,
     int is_dir,
     unsigned int size,
-    unsigned long mtime);
+    unsigned long mtime,
+    int piece_idx);
 
 /**
  * @return file removed */
@@ -82,5 +84,9 @@ int f2p_get_nfiles(f2p_t* me_);
 unsigned int f2p_pieces_required_for_filesize(f2p_t* me_, unsigned int size);
 
 void* f2p_get_files_from_piece_idx(f2p_t* me_, int idx);
+
+void* f2p_get_files_from_piece_range(f2p_t* me_, int idx, int npieces);
+
+void* f2p_get_files_from_piece_idx_and_size(f2p_t* me_, int idx, int size);
 
 #endif /* FILE2PIECE_MAPPER_H_ */
