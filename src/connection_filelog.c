@@ -120,7 +120,7 @@ int connection_fl_dict_leave(bencode_t *s, const char *dict_key)
 
     if (!a)
     {
-        a = f2p_file_added(me->pm, b->path, 0, b->size, b->mtime, -1);// b->piece_start);
+        a = f2p_file_added(me->pm, b->path, 0, b->size, b->mtime);
         f2p_file_remap(me->pm, b->path, b->piece_start);
     }
     else if (a->mtime < b->mtime)

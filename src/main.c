@@ -195,7 +195,7 @@ int file_added(
     sys_t* me = callee;
 
     printf("added: %s %dB %d\n", name, size, is_dir);
-    f2p_file_added(me->pm, name, is_dir, size, mtime, -1);
+    f2p_file_added(me->pm, name, is_dir, size, mtime);
     return 0;
 }
 

@@ -130,14 +130,13 @@ void* f2p_file_added(
     char* name,
     int is_dir,
     unsigned int size,
-    unsigned long mtime,
-    int idx)
+    unsigned long mtime)
 {
     f2p_private_t* me = (void*)me_;
     int npieces, i;
     file_t* f;
 
-    printf("added: %s %dB %d pidx: %d\n", name, size, is_dir, idx);
+    //printf("added: %s %dB %d pidx: %d\n", name, size, is_dir, idx);
         
     if ((f = f2p_get_file_from_path(me_, name)))
         return NULL;
@@ -150,28 +149,10 @@ void* f2p_file_added(
     f->mtime = mtime;
     hashmap_put(me->files, f->path, f);
 
+    int idx;
+
     npieces = __pieces_required(size, me->piece_size);
-
-//    if (-1 == idx)
-//    {
-        idx = bt_piecedb_add(me->pdb, npieces);
-#if 0
-    }
-    else
-    {
-        if (f2p_get_files_from_piece_range(me_, idx, npieces))
-        {
-            f->piece_start = idx = bt_piecedb_add(me->pdb, npieces);
-            f2p_file_remap(me_,f->path,idx);
-        }
-        else
-        {
-            idx = bt_piecedb_add_at_idx(me->pdb, npieces, idx);
-        }
-    }
-#endif
-
-    f->piece_start = idx;
+    f->piece_start = idx = bt_piecedb_add(me->pdb, npieces);
     __add_piecerange(me, __new_piecerange(idx, npieces, f));
 
     for (i=0; i<npieces; i++)
@@ -211,7 +192,7 @@ void* f2p_file_removed(f2p_t* me_, char* name)
     f2p_private_t* me = (void*)me_;
     file_t* f;
 
-    printf("removed: %s\n", name);
+    //printf("removed: %s\n", name);
 
     if (!(f = f2p_get_file_from_path(me_, name)))
         return NULL;
@@ -225,14 +206,14 @@ void* f2p_file_removed(f2p_t* me_, char* name)
 void* f2p_file_changed(
     f2p_t* me_, char* name, int new_size, unsigned long mtime)
 {
-    printf("changed: %s %d\n", name, new_size);
+    //printf("changed: %s %d\n", name, new_size);
     return NULL;
 }
 
 void* f2p_file_moved(
     f2p_t* me_, char* name, char* new_name, unsigned long mtime)
 {
-    printf("moved: %s %s\n", name, new_name);
+    //printf("moved: %s %s\n", name, new_name);
     return NULL;
 }
 
@@ -288,13 +269,9 @@ void* f2p_file_remap(
 
     __remove_piecerange_from_file(me, f);
 
-    int i;
-    int npieces = __pieces_required(f->size, me->piece_size);
+    int i, npieces = __pieces_required(f->size, me->piece_size);
     for (i=f->piece_start; i<f->piece_start + npieces; i++)
-    {
         bt_piecedb_remove(me->pdb, i);
-    }
-
     __makespace_for_idx(me, idx, npieces);
 
     int new_idx;
@@ -306,15 +283,7 @@ void* f2p_file_remap(
     __add_piecerange(me, __new_piecerange(idx, npieces, f));
     f->piece_start = new_idx;
     assert(new_idx == idx);
-
-#if 0
-    if (bt_piecedb_get(me->pdb, idx))
-    {
-        
-    }
-#endif
-
-    return 0;
+    return f;
 }
 
 void* f2p_get_files(f2p_t* me_)
@@ -326,7 +295,6 @@ void* f2p_get_files(f2p_t* me_)
 void* f2p_get_file_from_path(f2p_t* me_, const char* path)
 {
     f2p_private_t* me = (void*)me_;
-
     return hashmap_get(me->files, path);
 }
 

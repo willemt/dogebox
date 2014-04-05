@@ -42,8 +42,7 @@ void* f2p_file_added(
     char* name,
     int is_dir,
     unsigned int size,
-    unsigned long mtime,
-    int piece_idx);
+    unsigned long mtime);
 
 /**
  * @return file removed */
