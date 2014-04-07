@@ -429,3 +429,77 @@ void Testof_piecelog_needs_to_have_hash_of_20len(
     CuAssertTrue(tc, 0 == of_conn_piecelog(c, msg, ptr - msg));
 }
 
+void Testof_piecelog_updates_hash_if_different_and_higher_mtime(
+    CuTest * tc
+)
+{
+    void *hs;
+    unsigned char msg[1000], *ptr = msg, *m = msg;
+    unsigned int ii, ret, len;
+
+    of_conn_t* c;
+
+    c = of_conn_new(
+            &((of_conn_cb_t){
+            .conn_pwp_dispatch = __conn_pwp_dispatch
+            }), NULL);
+
+    ptr += sprintf(ptr,
+            "l"
+            "d"
+            "3:idxi%de"
+            "4:sizei%de"
+            "4:hash%d:%s"
+            "5:mtimei%de"
+            "e"
+            "e",
+            10, /* idx */
+            10, /* size */
+            strlen("00000000000000000000"), 20, /* hash */
+            1 /* mtime */
+            );
+    CuAssertTrue(tc, 1 == of_conn_piecelog(c, msg, ptr - msg));
+
+    ptr = msg;
+    ptr += sprintf(ptr,
+            "l"
+            "d"
+            "3:idxi%de"
+            "4:sizei%de"
+            "4:hash%d:%s"
+            "5:mtimei%de"
+            "e"
+            "e",
+            10, /* idx */
+            10, /* size */
+            strlen("11111111111111111111"), 20, /* hash */
+            2 /* mtime */
+            );
+    CuAssertTrue(tc, 1 == of_conn_piecelog(c, msg, ptr - msg));
+
+    void* p;
+
+    p = bt_piecedb_get(db, 10);
+    CuAssertTrue(tc, 0 == strncmp(bt_piece_get_hash(p), "11111111111111111111", 20));
+
+    ptr = msg;
+    ptr += sprintf(ptr,
+            "l"
+            "d"
+            "3:idxi%de"
+            "4:sizei%de"
+            "4:hash%d:%s"
+            "5:mtimei%de"
+            "e"
+            "e",
+            10, /* idx */
+            10, /* size */
+            strlen("22222222222222222222"), 20, /* hash */
+            /* lower mtime */
+            1 /* mtime */
+            );
+    CuAssertTrue(tc, 1 == of_conn_piecelog(c, msg, ptr - msg));
+    p = bt_piecedb_get(db, 10);
+    CuAssertTrue(tc, 0 != strncmp(bt_piece_get_hash(p), "22222222222222222222", 20));
+
+}

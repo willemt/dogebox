@@ -40,12 +40,6 @@
 
 #include "dogebox_connection_private.h"
 
-#if 0
-typedef struct {
-
-} file_t;
-#endif
-
 int connection_pl_int(bencode_t *s,
         const char *dict_key,
         const long int val)
@@ -114,12 +108,18 @@ int connection_pl_dict_leave(bencode_t *s, const char *dict_key)
     }
 
     char* a_hash = bt_piece_get_hash(a);
+    unsigned int mtime = bt_piece_get_mtime(a);
 
     assert(a_hash);
 
-    if (!memcmp(a_hash, me->piece.hash, 20))
+    /* PL02 */
+    if (mtime < me->piece.mtime)
     {
-
+        if (!memcmp(a_hash, me->piece.hash, 20))
+        {
+            bt_piece_set_hash(a, me->piece.hash);
+            bt_piece_set_mtime(a, mtime);
+        }
     }
 
     return 1;

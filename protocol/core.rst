@@ -251,29 +251,29 @@ Piece log messages have the following message format:
 
 When receiving this message, we: 
 
- - (PL01) if we don't have a piece that has the same index in our database, we
-   disconnect *(This is because the file log creates the pieces we require.  If
-   the Piece Log indicates we need to add pieces, this is most likely a processing error)*
+ - if we don't have a piece that has the same index in our database, we
+   disconnect (PL01). *(This is because the file log creates the pieces we require.  If
+   the Piece Log indicates we need to add pieces, this is most likely a processing error)* 
 
- - (PL02) update our database with this piece's info. If a pieces's mtime is
-   higher than ours. See below paragraph for how the replacement works
+ - update our database with this piece's info. If a pieces's mtime is
+   higher than ours. (PL02) See below paragraph for how the replacement works
 
- - (PL03) we ignore the piece and enque the piece info from our database to be
-   sent to the peer, if a pieces's mtime is less than ours
+ - we ignore the piece and enque the piece info from our database to be
+   sent to the peer, if a pieces's mtime is less than ours (PL03) 
 
 When we replace our piece info with a newer piece info:
 
- - (PL04) if we had a complete version of the piece before the update, send a
-   DONTHAVE message to all our peers. The updated piece index is the argument
+ - if we had a complete version of the piece before the update, send a
+   DONTHAVE message to all our peers. (PL04) The updated piece index is the argument
    for the message *(We do this to prevent peers from assuming we have the most
    recent piece data)*
 
 **Piece Log subset**
 This subset consists of pieces:
 
-    - belonging to us which have a higher mtime than the peer
+ - belonging to us which have a higher mtime than the peer
 
-    - that the peer doesn't have
+ - that the peer doesn't have
 
 Don't have Message
 ~~~~~~~~~~~~~~~~~~
