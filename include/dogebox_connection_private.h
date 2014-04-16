@@ -40,6 +40,8 @@ int connection_pl_str(bencode_t *s,
         const unsigned char* val,
         unsigned int v_len);
 
+int connection_pl_dict_leave(bencode_t *s, const char *dict_key);
+
 int connection_fl_int(bencode_t *s,
         const char *dict_key,
         const long int val);

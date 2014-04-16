@@ -173,14 +173,14 @@ Handshake messages are sent at the beginning of the connection.
 
 When receiving this message, we: 
 
-    - (HS01) if handshake is valid, reply with handshake, and send our piece and
-      file log
+    - if handshake is valid, reply with handshake, and send our piece and
+      file log (HS01) 
 
     - if handshake is invalid, drop the connection. Invalid handshakes:
 
-      - (HS02) have an invalid name length; and/or
+      - have an invalid name length; and/or (HS02) 
 
-      - (HS03) have an unexpected protocol name
+      - have an unexpected protocol name (HS03) 
 
 **highest_piece**
 *This is required within the handshake so that clients are able to construct a
