@@ -12,10 +12,10 @@
 #include "dogebox.h"
 #include "dogebox_connection.h"
 #include "dogebox_msghandler.h"
-#include "file2piece_mapper.h"
 
 #include "bt.h"
 #include "bt_piece_db.h"
+#include "file2piece_mapper.h"
 
 void TestF2P_new_has_no_files(
     CuTest * tc

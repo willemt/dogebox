@@ -18,9 +18,6 @@
 /* for iterating through f2p hashmap */
 #include "linked_list_hashmap.h"
 
-/* for f2p_t */
-#include "file2piece_mapper.h"
-
 /* dogebox local needs dm_stats_t */
 #include "bt.h"
 
@@ -37,6 +34,9 @@
 #include "sparse_counter.h"
 #include "pwp_connection.h"
 #include "pwp_connection_private.h"
+
+/* for f2p_t */
+#include "file2piece_mapper.h"
 
 #include "dogebox_connection_private.h"
 

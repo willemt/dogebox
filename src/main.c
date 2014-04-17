@@ -340,10 +340,18 @@ int main(int argc, char **argv)
     config_set(me.cfg, "my_peerid", bt_generate_peer_id());
     assert(config_get(me.cfg, "my_peerid"));
 
+    /* 2mb pieces */
+    me.pm = f2p_new(me.db, 1 << 21);
+
     me.dc = bt_diskcache_new();
-    me.fd = bt_filedumper_new();
+    //me.fd = bt_filedumper_new();
     bt_diskcache_set_disk_blockrw(me.dc,
-            bt_filedumper_get_blockrw(me.fd), me.fd);
+            &((bt_blockrw_i){
+                .write_block = f2p_write_block,
+                .read_block = f2p_read_block,
+                .flush_block = f2p_flush_block
+                }), me.pm);
+            //bt_filedumper_get_blockrw(me.fd), me.fd);
 
     me.db = bt_piecedb_new();
     bt_piecedb_set_diskstorage(me.db,
@@ -352,9 +360,6 @@ int main(int argc, char **argv)
             &((bt_piecedb_i) {
             .get_piece = bt_piecedb_get
             }), me.db);
-
-    /* 2mb pieces */
-    me.pm = f2p_new(me.db, 1 << 21);
 
     /* Selector */
     bt_dm_set_piece_selector(me.bc, &((bt_pieceselector_i) {

@@ -5,13 +5,16 @@
 #include <string.h>
 #include <assert.h>
 
-#include "file2piece_mapper.h"
 #include "linked_list_hashmap.h"
 
 #include "linked_list_queue.h"
 
+#include "sparsefile_allocator.h"
+
 #include "bt.h"
 #include "bt_piece_db.h"
+
+#include "file2piece_mapper.h"
 
 typedef struct piecerange_s piecerange_t;
 
@@ -147,6 +150,8 @@ void* f2p_file_added(
     f->is_dir = is_dir;
     f->size = size;
     f->mtime = mtime;
+    f->sfa = sfa_new();
+    sfa_add_file(f->sfa, f->path, f->path_len, f->size);
     hashmap_put(me->files, f->path, f);
 
     int idx;
@@ -334,5 +339,48 @@ int f2p_get_nfiles(f2p_t* me_)
 {
     f2p_private_t* me = (void*)me_;
     return hashmap_count(me->files);
+}
+
+int f2p_write_block(
+    void *me_,
+    void *caller __attribute__((__unused__)),
+    const bt_block_t * blk,
+    const void *data
+)
+{
+    f2p_private_t* me = (void*)me_;
+
+    file_t* f = f2p_get_files_from_piece_idx(me_, blk->piece_idx);
+
+    return sfa_write(
+            f->sfa,
+            blk->piece_idx * me->piece_size + blk->offset,
+            blk->len,
+            data);
+}
+
+void *f2p_read_block(
+    void *me_,
+    void *caller __attribute__((__unused__)),
+    const bt_block_t * blk
+)
+{
+    f2p_private_t* me = (void*)me_;
+
+    file_t* f = f2p_get_files_from_piece_idx(me_, blk->piece_idx);
+
+    return sfa_read(
+            f->sfa,
+            blk->piece_idx * me->piece_size + blk->offset,
+            blk->len);
+}
+
+int f2p_flush_block(
+    void *flo,
+    void *caller __attribute__((__unused__)),
+    const bt_block_t * blk
+)
+{
+    return 0;
 }
 

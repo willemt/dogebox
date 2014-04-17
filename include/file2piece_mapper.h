@@ -29,6 +29,9 @@ typedef struct file_s {
     //int npieces;
 
     int is_deleted;
+
+    /* sparse file allocator */
+    void* sfa;
 } file_t;
 
 f2p_t* f2p_new(void* piecedb, unsigned int piece_size);
@@ -87,5 +90,11 @@ void* f2p_get_files_from_piece_idx(f2p_t* me_, int idx);
 void* f2p_get_files_from_piece_range(f2p_t* me_, int idx, int npieces);
 
 void* f2p_get_files_from_piece_idx_and_size(f2p_t* me_, int idx, int size);
+
+int f2p_write_block(void *me_, void *caller, const bt_block_t * blk, const void *data);
+
+void *f2p_read_block(void *me_, void *caller, const bt_block_t * blk);
+
+int f2p_flush_block(void *flo, void *caller, const bt_block_t * blk);
 
 #endif /* FILE2PIECE_MAPPER_H_ */
