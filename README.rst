@@ -34,7 +34,10 @@ dogebox is in alpha!
 Here is the current feature status list:
 
  [ ] Read only shares
+ 
  [ ] Encryption
+ 
  [ ] Untrusted peers (ie. end to end encryption)
+ 
  [ ] GUI
 
