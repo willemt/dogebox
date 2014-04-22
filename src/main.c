@@ -14,7 +14,7 @@
 #include <string.h>
 #include <assert.h>
 #include <fcntl.h>
-#include <getopt.h>
+//#include <getopt.h>
 #include <sys/time.h>
 #include <uv.h>
 
@@ -24,9 +24,7 @@
 #include "bt.h"
 #include "bt_piece_db.h"
 #include "bt_diskcache.h"
-//#include "bt_filedumper.h"
 #include "bt_string.h"
-//#include "bt_sha1.h"
 #include "bt_selector_random.h"
 
 #include "config.h"
@@ -58,12 +56,11 @@
 /* for filewatcher */
 #include "fff.h"
 
+/* for command line options */
 #include "docopt.c"
 
 /* for sys_t */
 #include "dogebox_local.h"
-
-#define PROGRAM_NAME "bt"
 
 uv_loop_t *loop;
 
@@ -382,11 +379,13 @@ int main(int argc, char **argv)
             .msghandler_new = __new_msghandler,
             }), &me);
 
+#if 0
     if (argc == optind)
     {
         printf("%s", args.help_message);
         exit(EXIT_FAILURE);
     }
+#endif
 
     /* start uv */
     loop = uv_default_loop();
