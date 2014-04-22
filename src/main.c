@@ -24,9 +24,9 @@
 #include "bt.h"
 #include "bt_piece_db.h"
 #include "bt_diskcache.h"
-#include "bt_filedumper.h"
+//#include "bt_filedumper.h"
 #include "bt_string.h"
-#include "bt_sha1.h"
+//#include "bt_sha1.h"
 #include "bt_selector_random.h"
 
 #include "config.h"
@@ -160,10 +160,7 @@ static void __periodic(uv_timer_t* handle, int status)
         hashmap_iterator_t i;
         hashmap_t* files;
         
-        files = f2p_get_files(me->pm);
-        printf("files: %d\n", hashmap_count(files));
-
-        for (hashmap_iterator(files, &i);
+        for (files = f2p_get_files(me->pm), hashmap_iterator(files, &i);
              hashmap_iterator_has_next(files, &i);)
         {
             unsigned char bencode[1000];
@@ -344,14 +341,12 @@ int main(int argc, char **argv)
     me.pm = f2p_new(me.db, 1 << 21);
 
     me.dc = bt_diskcache_new();
-    //me.fd = bt_filedumper_new();
     bt_diskcache_set_disk_blockrw(me.dc,
             &((bt_blockrw_i){
                 .write_block = f2p_write_block,
                 .read_block = f2p_read_block,
                 .flush_block = f2p_flush_block
                 }), me.pm);
-            //bt_filedumper_get_blockrw(me.fd), me.fd);
 
     me.db = bt_piecedb_new();
     bt_piecedb_set_diskstorage(me.db,
@@ -361,7 +356,6 @@ int main(int argc, char **argv)
             .get_piece = bt_piecedb_get
             }), me.db);
 
-    /* Selector */
     bt_dm_set_piece_selector(me.bc, &((bt_pieceselector_i) {
                 .new = bt_random_selector_new,
                 .peer_giveback_piece = bt_random_selector_giveback_piece,
@@ -374,7 +368,6 @@ int main(int argc, char **argv)
                 .poll_piece = bt_random_selector_poll_best_piece }), NULL);
     bt_dm_check_pieces(me.bc);
 
-    /* set network functions */
     bt_dm_set_cbs(me.bc, &((bt_dm_cbs_t) {
             .peer_connect = peer_connect,
             .peer_send = peer_send,
