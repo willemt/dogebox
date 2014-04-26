@@ -13,13 +13,13 @@
 #include <strings.h>
 #include <string.h>
 #include <assert.h>
-#include <fcntl.h>
+//#include <fcntl.h>
 //#include <getopt.h>
-#include <sys/time.h>
+//#include <sys/time.h>
 #include <uv.h>
 
 /* for INT_MAX */
-#include <limits.h>
+//#include <limits.h>
 
 #include "bt.h"
 #include "bt_piece_db.h"
