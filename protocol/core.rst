@@ -70,23 +70,23 @@ File Log
 
 The file log is a bencoded list of dictionaries with the following key/values:
 
- +-----------------+-----------+---------------------------------------+
- | Field name      | Data type | Comments                              |
- +-----------------+-----------+---------------------------------------+
- | path            | string    | Path of file                          |
- +-----------------+-----------+---------------------------------------+
- | size            | uint32    | Size of file in bytes                 |
- +-----------------+-----------+---------------------------------------+
- | piece_idx       | uint32    | Starting piece index of the file      |
- +-----------------+-----------+---------------------------------------+
- | mtime           | uint32    | Last modified time of file meta data  |
- +-----------------+-----------+---------------------------------------+
- | utime           | uint32    | The time at which the client detected |
- |                 |           | the modification                      |
- +-----------------+-----------+---------------------------------------+
- | is_deleted      | string    | "y" when file has been removed;       |
- |                 |           | "n" otherwise                         |
- +-----------------+-----------+---------------------------------------+
++-----------------+-----------+---------------------------------------+
+| Field name      | Data type | Comments                              |
++-----------------+-----------+---------------------------------------+
+| path            | string    | Path of file                          |
++-----------------+-----------+---------------------------------------+
+| size            | uint32    | Size of file in bytes                 |
++-----------------+-----------+---------------------------------------+
+| piece_idx       | uint32    | Starting piece index of the file      |
++-----------------+-----------+---------------------------------------+
+| mtime           | uint32    | Last modified time of file meta data  |
++-----------------+-----------+---------------------------------------+
+| utime           | uint32    | The time at which the client detected |
+|                 |           | the modification                      |
++-----------------+-----------+---------------------------------------+
+| is_deleted      | string    | "y" when file has been removed;       |
+|                 |           | "n" otherwise                         |
++-----------------+-----------+---------------------------------------+
 
 Together, "piece_idx" and "size" make up the file's piece range.
 
@@ -95,17 +95,17 @@ Piece Log
 
 The piece log is a bencoded list of dictionaries with the following key/values:
 
- +----------------+-----------+---------------------------------------+
- | Field name     | Data type | Comments                              |
- +----------------+-----------+---------------------------------------+
- | idx            | uint32    | Index of piece                        |
- +----------------+-----------+---------------------------------------+
- | size           | uint32    | Size of piece in bytes                |
- +----------------+-----------+---------------------------------------+
- | hash           | string    | SHA1 hashsum of piece contents        |
- +----------------+-----------+---------------------------------------+
- | mtime          | uint32    | Last modified time of piece metadata  |
- +----------------+-----------+---------------------------------------+
++----------------+-----------+---------------------------------------+
+| Field name     | Data type | Comments                              |
++----------------+-----------+---------------------------------------+
+| idx            | uint32    | Index of piece                        |
++----------------+-----------+---------------------------------------+
+| size           | uint32    | Size of piece in bytes                |
++----------------+-----------+---------------------------------------+
+| hash           | string    | SHA1 hashsum of piece contents        |
++----------------+-----------+---------------------------------------+
+| mtime          | uint32    | Last modified time of piece metadata  |
++----------------+-----------+---------------------------------------+
 
 3. Maintaining log concensus (WIP)
 ==================================
@@ -174,23 +174,23 @@ Handshake messages are sent at the beginning of the connection.
 
 This message has this structure:
 
- +----------------+-----------+------+---------------------------------------+
- | Field name     | Data type | Bits | Comments                              |
- +----------------+-----------+------+---------------------------------------+
- | protname_len   | byte      |    8 | Length of protocol name               |
- +----------------+-----------+------+---------------------------------------+
- | protname       | string    |  N/A | Name of protocol                      |
- +----------------+-----------+------+---------------------------------------+
- | highest_piece  | uint32    |   32 | The highest piece index that the      |
- |                |           |      | client is aware of                    |
- +----------------+-----------+------+---------------------------------------+
++----------------+-----------+------+---------------------------------------+
+| Field name     | Data type | Bits | Comments                              |
++----------------+-----------+------+---------------------------------------+
+| protname_len   | byte      |    8 | Length of protocol name               |
++----------------+-----------+------+---------------------------------------+
+| protname       | string    |  N/A | Name of protocol                      |
++----------------+-----------+------+---------------------------------------+
+| highest_piece  | uint32    |   32 | The highest piece index that the      |
+|                |           |      | client is aware of                    |
++----------------+-----------+------+---------------------------------------+
 
 When receiving this message: 
 
-    - If handshake is valid, reply with handshake, and send our piece and
-      file log (HS01) 
+- If handshake is valid, reply with handshake, and send our piece and
+  file log (HS01) 
 
-    - If handshake is invalid, drop the connection.
+- If handshake is invalid, drop the connection.
 
 
 Invalid hanshakes
@@ -198,9 +198,9 @@ Invalid hanshakes
 
 Handshakes are treated as invalid when:
 
- - The name length is 0; and/or (HS02) 
+- The name length is 0; and/or (HS02) 
 
- - The protocol name is unexpected (HS03)
+- The protocol name is unexpected (HS03)
 
 Highest_piece
 *************
@@ -213,92 +213,92 @@ File log message
 
 This message has this structure:
 
- +----------------+-----------+------+---------------------------------------+
- | Field name     | Data type | Bits | Comments                              |
- +----------------+-----------+------+---------------------------------------+
- | len            | uint32    |   32 | length of payload                     |
- +----------------+-----------+------+---------------------------------------+
- | msgtype        | byte      |    8 | message type, always equals 9         |
- +----------------+-----------+------+---------------------------------------+
- | filelog        | string    |  N/A | Section 1 described bencoded string   |
- +----------------+-----------+------+---------------------------------------+
++----------------+-----------+------+---------------------------------------+
+| Field name     | Data type | Bits | Comments                              |
++----------------+-----------+------+---------------------------------------+
+| len            | uint32    |   32 | length of payload                     |
++----------------+-----------+------+---------------------------------------+
+| msgtype        | byte      |    8 | message type, always equals 9         |
++----------------+-----------+------+---------------------------------------+
+| filelog        | string    |  N/A | Section 1 described bencoded string   |
++----------------+-----------+------+---------------------------------------+
 
 When receiving this message we process each file dictionary within the bencoded
 string, and: 
 
-    - If we don't have a file that has the same path, we add the file to
-      our database and create the file in our local directory (FL01)
+- If we don't have a file that has the same path, we add the file to
+  our database and create the file in our local directory (FL01)
 
-    - If the file's mtime is less than ours:
+- If the file's mtime is less than ours:
 
-     - We ignore the file and enqueue the file info from our database to be
-       sent to the peer. After we've processed the whole file log we send a
-       subset of our file log (see below). (FL04)
+ - We ignore the file and enqueue the file info from our database to be
+   sent to the peer. After we've processed the whole file log we send a
+   subset of our file log (see below). (FL04)
 
-    - If the file's mtime is higher than ours:
+- If the file's mtime is higher than ours:
 
-     - If we don't have pieces that match the piece range, we add the piece
-       range to our database (FL02)
+ - If we don't have pieces that match the piece range, we add the piece
+   range to our database (FL02)
 
-     - When our piece range is different from the file log:
-       
-      - If the piece range conflicts with our file(s)' piece ranges, we re-map our
-        conflicting file(s)' piece ranges and enque the re-mapped file(s) to be
-        sent in the file log subset mentioned below (FL06). We then add the new piece
-        range to our database (FL03)
+ - When our piece range is different from the file log:
+   
+  - If the piece range conflicts with our file(s)' piece ranges, we re-map our
+    conflicting file(s)' piece ranges and enque the re-mapped file(s) to be
+    sent in the file log subset mentioned below (FL06). We then add the new piece
+    range to our database (FL03)
 
-     - If the file has a "is_deleted" flag set to "y", we delete the file and
-       set our "is_deleted" flag to "y" (FL05) 
+ - If the file has a "is_deleted" flag set to "y", we delete the file and
+   set our "is_deleted" flag to "y" (FL05) 
 
 File Log subset
 ******************
 This subset consists of files:
 
-    - Belonging to us which have a higher mtime than the peer
+- Belonging to us which have a higher mtime than the peer
 
-    - That the peer doesn't have
+- That the peer doesn't have
 
 Piece log message
 -----------------
 
 This message has this structure:
 
- +----------------+-----------+------+---------------------------------------+
- | Field name     | Data type | Bits | Comments                              |
- +----------------+-----------+------+---------------------------------------+
- | len            | uint32    |   32 | length of payload                     |
- +----------------+-----------+------+---------------------------------------+
- | msgtype        | byte      |    8 | message type, always equals 10        |
- +----------------+-----------+------+---------------------------------------+
- | piecelog       | string    |  N/A | Section 1 described bencoded string   |
- +----------------+-----------+------+---------------------------------------+
++----------------+-----------+------+---------------------------------------+
+| Field name     | Data type | Bits | Comments                              |
++----------------+-----------+------+---------------------------------------+
+| len            | uint32    |   32 | length of payload                     |
++----------------+-----------+------+---------------------------------------+
+| msgtype        | byte      |    8 | message type, always equals 10        |
++----------------+-----------+------+---------------------------------------+
+| piecelog       | string    |  N/A | Section 1 described bencoded string   |
++----------------+-----------+------+---------------------------------------+
 
 When receiving this message: 
 
- - If we don't have a piece that has the same index in our database, we
-   disconnect (PL01). *(This is because the file log creates the pieces we require.  If
-   the Piece Log indicates we need to add pieces, this is most likely a processing error)* 
+- If we don't have a piece that has the same index in our database, we
+  disconnect (PL01). *(This is because the file log creates the pieces we require.  If
+  the Piece Log indicates we need to add pieces, this is most likely a processing error)* 
 
- - We update our database with this piece's info. If a pieces's mtime is
-   higher than ours. (PL02) See below paragraph for how the replacement works
+- We update our database with this piece's info. If a pieces's mtime is
+  higher than ours. (PL02) See below paragraph for how the replacement works
 
- - We ignore the piece and enque the piece info from our database to be
-   sent to the peer, if a pieces's mtime is less than ours (PL03) 
+- We ignore the piece and enque the piece info from our database to be
+  sent to the peer, if a pieces's mtime is less than ours (PL03) 
 
 When we replace our piece info with a newer piece info:
 
- - If we had a complete version of the piece before the update, send a
-   DONTHAVE message to all our peers. (PL04) The updated piece index is the argument
-   for the message *(We do this to prevent peers from assuming we have the most
-   recent piece data)*
+- If we had a complete version of the piece before the update, send a
+  DONTHAVE message to all our peers. (PL04) The updated piece index is the argument
+  for the message *(We do this to prevent peers from assuming we have the most
+  recent piece data)*
 
 Piece Log subset
 ******************
 This subset consists of pieces:
 
- - Belonging to us which have a higher mtime than the peer
+- Belonging to us which have a higher mtime than the peer
 
- - That the peer doesn't have
+- That the peer doesn't have
 
 Don't have Message
 ------------------
@@ -310,15 +310,15 @@ piece anymore.
 
 This message has this structure:
 
- +----------------+-----------+------+---------------------------------------+
- | Field name     | Data type | Bits | Comments                              |
- +----------------+-----------+------+---------------------------------------+
- | len            | byte      |    8 | Size of payload                       |
- +----------------+-----------+------+---------------------------------------+
- | id             | uint32    |   32 | PWP message type, always equals 9     |
- +----------------+-----------+------+---------------------------------------+
- | piece id       | uint32    |   32 | The piece index                       |
- +----------------+-----------+------+---------------------------------------+
++----------------+-----------+------+---------------------------------------+
+| Field name     | Data type | Bits | Comments                              |
++----------------+-----------+------+---------------------------------------+
+| len            | byte      |    8 | Size of payload                       |
++----------------+-----------+------+---------------------------------------+
+| id             | uint32    |   32 | PWP message type, always equals 9     |
++----------------+-----------+------+---------------------------------------+
+| piece id       | uint32    |   32 | The piece index                       |
++----------------+-----------+------+---------------------------------------+
 
 5. Peer discovery (WIP)
 =======================
