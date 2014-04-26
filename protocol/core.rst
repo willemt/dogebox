@@ -133,9 +133,9 @@ When a peer first connects with non-empty File and Piece logs:
 
 5) Peer sends a message:
 
- - Request files/pieces for hashes of difference
+   - Request files/pieces for hashes of difference
 
- - Send IDs of hashes that are different
+   - Send IDs of hashes that are different
 
 6) Merge received different items (ie. files/pieces)
 
@@ -231,24 +231,24 @@ string, and:
 
 - If the file's mtime is less than ours:
 
- - We ignore the file and enqueue the file info from our database to be
-   sent to the peer. After we've processed the whole file log we send a
-   subset of our file log (see below). (FL04)
+  - We ignore the file and enqueue the file info from our database to be
+    sent to the peer. After we've processed the whole file log we send a
+    subset of our file log (see below). (FL04)
 
 - If the file's mtime is higher than ours:
 
- - If we don't have pieces that match the piece range, we add the piece
-   range to our database (FL02)
+  - If we don't have pieces that match the piece range, we add the piece
+    range to our database (FL02)
 
- - When our piece range is different from the file log:
-   
-  - If the piece range conflicts with our file(s)' piece ranges, we re-map our
-    conflicting file(s)' piece ranges and enque the re-mapped file(s) to be
-    sent in the file log subset mentioned below (FL06). We then add the new piece
-    range to our database (FL03)
+  - When our piece range is different from the file log:
+    
+    - If the piece range conflicts with our file(s)' piece ranges, we re-map our
+      conflicting file(s)' piece ranges and enque the re-mapped file(s) to be
+      sent in the file log subset mentioned below (FL06). We then add the new
+      piece range to our database (FL03)
 
- - If the file has a "is_deleted" flag set to "y", we delete the file and
-   set our "is_deleted" flag to "y" (FL05) 
+  - If the file has a "is_deleted" flag set to "y", we delete the file and
+    set our "is_deleted" flag to "y" (FL05) 
 
 File Log subset
 ******************
