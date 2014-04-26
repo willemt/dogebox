@@ -321,18 +321,9 @@ int main(int argc, char **argv)
     me.bc = bt_dm_new();
     me.cfg = bt_dm_get_config(me.bc);
 
-#if 0
-    status = config_read(cfg, "yabtc", "config");
-    setlocale(LC_ALL, " ");
-    atexit (close_stdin);
-    bt_dm_set_logging(bc,
-            open("dump_log", O_CREAT | O_TRUNC | O_RDWR, 0666), __log);
-#endif
-
     config_set_va(me.cfg, "npieces", "%u", 1 << 31),
     config_set_va(me.cfg, "piece_length", "%d", 1 << 21);
     config_set(me.cfg, "my_peerid", bt_generate_peer_id());
-    assert(config_get(me.cfg, "my_peerid"));
 
     /* 2mb pieces */
     me.pm = f2p_new(me.db, 1 << 21);
