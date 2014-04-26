@@ -12,7 +12,7 @@ files.
 Even though DBP is simply just the addition of piece mapping features to the
 Bittorrent protocol, there are some extra complexities involved, such as:
 
- - Concensus of the piece log and file log between peers 
+- Concensus of the piece log and file log between peers 
 
 Table of contents
 =================
@@ -32,30 +32,30 @@ elaborated on in the below sections.
 
 Pieces are referenced by their index, a 32bit unsigned integer.
 
- *There are 2^32 possible pieces within dogebox. This is in-line with the Bittorrent protocol.*
+ There are 2^32 possible pieces within dogebox. This is in-line with the Bittorrent protocol.
 
 Pieces represent data chunks of *up to* 2mb in size.
 
- *DBP uses a modified form of the Bittorrent Peer Wire Protocol to allow variable
+ DBP uses a modified form of the Bittorrent Peer Wire Protocol to allow variable
  sized pieces. Some files can be held within a single piece, and might not take
  up all of the piece space. The Piece Log (mentioned in section 2) describes the
- size of each piece.*
+ size of each piece.
 
 Files have a one-to-many relationship with pieces. This relationship is
 specified by a piece index (unsigned 32bit integer) and a number of pieces
 (unsigned 32bit integer). This pair of integers is known as a piece range.
  
- *This means that files must be mapped to a contiguous range of pieces (the
+ This means that files must be mapped to a contiguous range of pieces (the
  ordering is based off the piece index). For example, "readme.txt" could have a
  piece index of 2 with a piece range length of 4, ie. readme.txt is made up of
- pieces 2, 3, 4, 5.*
+ pieces 2, 3, 4, 5.
 
 Files are assigned a piece mapping by choosing a random piece index that allows
 a piece range that supports the entire file's size. The file can't have pieces
 that overlap with any already mapped pieces.
 
- *The piece range is dependent on the size of the file. For example, you will need
- at least 5 pieces to represent a 10mb file.*
+ The piece range is dependent on the size of the file. For example, you will need
+ at least 5 pieces to represent a 10mb file.
 
 2. Maintaining file and piece event logs
 ========================================
@@ -109,12 +109,12 @@ The piece log is a bencoded list of dictionaries with the following key/values:
 
 3. Maintaining log concensus (WIP)
 ==================================
-*Note: This section is under review at the moment*
+Note: This section is under review at the moment
 
 File and Piece logs are shared using one of the following methods:
- - IBLT reconcilation & Merkle tree reconciliation
- - Merkle tree reconcilation
- - Piece & File log transmission
+- IBLT reconcilation & Merkle tree reconciliation
+- Merkle tree reconcilation
+- Piece & File log transmission
 
 Note: IBLT reconciliation has a risk of false positives, therefore a 2nd round
 involving a Merkle tree is required.
