@@ -3,7 +3,7 @@ dogebox
 
 What?
 -----
-| wow. very speed. such open. much scalable. wow
+ wow. very speed. such open. much scalable. wow
 -- Doge on dogebox
 
 dogebox is..
@@ -33,11 +33,8 @@ dogebox is in alpha!
 
 Here is the current feature status list:
 
-[ ] Read only shares
- 
-[ ] Encryption
- 
-[ ] Untrusted peers (ie. end to end encryption)
- 
-[ ] GUI
+- [ ] Read only shares
+- [ ] Encryption
+- [ ] Untrusted peers (ie. end to end encryption)
+- [ ] GUI
 
